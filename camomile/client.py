@@ -28,6 +28,7 @@
 import logging
 import requests
 import json
+from six.moves.urllib_parse import urljoin
 
 
 class CMMLMixinAdmin():
@@ -53,27 +54,32 @@ class CamomileClient(object):
 
         super(CamomileClient, self).__init__()
 
-        self.url = url
+        # add trailing slash if missing
+        self.url = url + ('/' if url[-1] != '/' else '')
+
         self.session = requests.Session()
         self.login(username, password)
 
     def get(self, route, returns_json=True):
-        r = self.session.get(self.url + route)
+        url = urljoin(self.url, route)
+        r = self.session.get(url)
         if returns_json:
             return r.json()
         else:
             return r
 
     def delete(self, route, returns_json=True):
-        r = self.session.delete(self.url + route)
+        url = urljoin(self.url, route)
+        r = self.session.delete(url)
         if returns_json:
             return r.json()
         else:
             return r
 
     def post(self, route, data, returns_json=True):
+        url = urljoin(self.url, route)
         r = self.session.post(
-            self.url + route,
+            url,
             data=json.dumps(data),
             headers={'Content-Type': 'application/json'}
         )
@@ -83,8 +89,9 @@ class CamomileClient(object):
             return r
 
     def put(self, route, data, returns_json=True):
+        url = urljoin(self.url, route)
         r = self.session.put(
-            self.url + route,
+            url,
             data=json.dumps(data),
             headers={'Content-Type': 'application/json'}
         )

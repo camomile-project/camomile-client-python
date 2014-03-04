@@ -44,6 +44,7 @@ setup(
     url='http://herve.niderb.fr',
     packages=find_packages(),
     install_requires=[
+        'six >= 1.5.2',
         'requests >= 2.2.1'
     ],
     classifiers=[
