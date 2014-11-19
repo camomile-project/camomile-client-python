@@ -142,6 +142,9 @@ class CamomileClient(object):
     def add_media(self, id_corpus, data):
         return self.post('corpus/'+id_corpus+'/media', data)
 
+    def add_medias(self, id_corpus, data):
+        return self.post('corpus/'+id_corpus+'/medias', data)
+
     def add_layer(self, id_corpus, data):
         return self.post('corpus/'+id_corpus+'/layer', data)
 
@@ -206,6 +209,9 @@ class CamomileClient(object):
 
     def add_annotation(self, id_layer, data):
         return self.post('layer/'+id_layer+'/annotation', data)
+
+    def add_annotations(self, id_layer, data):
+        return self.post('layer/'+id_layer+'/annotations', data)
 
     def get_all_annotation_of_a_layer(self, id_layer, id_media=''):
         if id_media == '' :
