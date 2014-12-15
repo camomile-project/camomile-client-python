@@ -207,9 +207,6 @@ class CamomileClient(object):
     def add_annotation(self, id_layer, data):
         return self.post('layer/'+id_layer+'/annotation', data)
 
-    def add_annotations(self, id_layer, data):
-        return self.post('layer/'+id_layer+'/annotations', data)
-
     def get_all_annotation_of_a_layer(self, id_layer, media=''):
         if media == '' :
             return self.get('layer/'+id_layer+'/annotation')
