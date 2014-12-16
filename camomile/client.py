@@ -34,17 +34,28 @@ import objectifier
 
 class CamomileClient(object):
 
-    def __init__(self, username, password, url, dict_or_objectifier):
+    def __init__(self, username, password, url, dict_or_objectifier=False, delay=0):
         super(CamomileClient, self).__init__()
 
         # add trailing slash if missing
         self.url = url + ('/' if url[-1] != '/' else '')
         self.session = requests.Session()
         self.dict_or_objectifier = dict_or_objectifier
+        self.delay = delay
+        self.previous_call = 0.0        
         self.login(username, password)
 
     ### common function ###
+    def pause(self):
+        if self.delay > 0:
+            current_time = time.time()
+            elapsed = current_time - self.previous_call
+            if elapsed < self.delay :
+                time.sleep(self.delay - elapsed)
+            self.previous_call = current_time
+    
     def get(self, route):
+        self.pause()
         url = urljoin(self.url, route)
         r = self.session.get(url)
         r.raise_for_status()
@@ -53,6 +64,7 @@ class CamomileClient(object):
         return r.json()
 
     def delete(self, route):
+        self.pause()
         url = urljoin(self.url, route)
         r = self.session.delete(url)
         r.raise_for_status()
@@ -61,6 +73,7 @@ class CamomileClient(object):
         return r.json()
 
     def post(self, route, data):
+        self.pause()
         url = urljoin(self.url, route)
         r = self.session.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
         r.raise_for_status()
@@ -69,6 +82,7 @@ class CamomileClient(object):
         return r.json()
 
     def put(self, route, data):
+        self.pause()
         url = urljoin(self.url, route)
         r = self.session.put(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
         r.raise_for_status()
