@@ -47,30 +47,34 @@ class CamomileClient(object):
     def get(self, route):
         url = urljoin(self.url, route)
         r = self.session.get(url)
+        r.raise_for_status()
         if self.dict_or_objectifier:
-            r = objectifier.Objectifier(r.json())          
-        return r.status_code, r.json()
+            return objectifier.Objectifier(r.json())          
+        return r.json()
 
     def delete(self, route):
         url = urljoin(self.url, route)
         r = self.session.delete(url)
+        r.raise_for_status()
         if self.dict_or_objectifier:
-            r = objectifier.Objectifier(r.json())          
-        return r.status_code, r.json()
+            return objectifier.Objectifier(r.json())          
+        return r.json()
 
     def post(self, route, data):
         url = urljoin(self.url, route)
         r = self.session.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
+        r.raise_for_status()
         if self.dict_or_objectifier:
-            r = objectifier.Objectifier(r.json())          
-        return r.status_code, r.json()
+            return objectifier.Objectifier(r.json())          
+        return r.json()
 
     def put(self, route, data):
         url = urljoin(self.url, route)
         r = self.session.put(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
+        r.raise_for_status()
         if self.dict_or_objectifier:
-            r = objectifier.Objectifier(r.json())          
-        return r.status_code, r.json()
+            return objectifier.Objectifier(r.json())          
+        return r.json()
 
     ### authenticate ###
     def login(self, username, password):
