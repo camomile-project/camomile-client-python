@@ -30,7 +30,7 @@ import requests
 import json
 from six.moves.urllib_parse import urljoin
 import objectifier
-
+import time
 
 class CamomileClient(object):
 
