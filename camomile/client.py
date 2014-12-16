@@ -45,6 +45,12 @@ class CamomileClient(object):
         self.previous_call = 0.0        
         self.login(username, password)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.logout()
+
     ### common function ###
     def pause(self):
         if self.delay > 0:
