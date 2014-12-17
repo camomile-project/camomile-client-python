@@ -28,18 +28,17 @@
 import requests
 import simplejson as json
 from six.moves.urllib_parse import urljoin
-import objectifier
 import time
+
 
 class CamomileClient(object):
 
-    def __init__(self, username, password, url, dict_or_objectifier=False, delay=0):
+    def __init__(self, username, password, url, delay=0):
         super(CamomileClient, self).__init__()
 
         # add trailing slash if missing
         self.url = url + ('/' if url[-1] != '/' else '')
         self.session = requests.Session()
-        self.dict_or_objectifier = dict_or_objectifier
         self.delay = delay
         self.previous_call = 0.0        
         self.login(username, password)
@@ -72,8 +71,6 @@ class CamomileClient(object):
         url = urljoin(self.url, route)
         r = self.session.get(url)
         self.check_error(r)
-        if self.dict_or_objectifier:
-            return objectifier.Objectifier(r.json())          
         return r.json()
 
     def delete(self, route):
@@ -81,8 +78,6 @@ class CamomileClient(object):
         url = urljoin(self.url, route)
         r = self.session.delete(url)
         self.check_error(r)
-        if self.dict_or_objectifier:
-            return objectifier.Objectifier(r.json())          
         return r.json()
 
     def post(self, route, data):
@@ -90,8 +85,6 @@ class CamomileClient(object):
         url = urljoin(self.url, route)
         r = self.session.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
         self.check_error(r)
-        if self.dict_or_objectifier:
-            return objectifier.Objectifier(r.json())          
         return r.json()
 
     def put(self, route, data):
@@ -99,8 +92,6 @@ class CamomileClient(object):
         url = urljoin(self.url, route)
         r = self.session.put(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
         self.check_error(r)
-        if self.dict_or_objectifier:
-            return objectifier.Objectifier(r.json())          
         return r.json()
 
     ### authenticate ###
