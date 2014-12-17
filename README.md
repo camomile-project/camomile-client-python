@@ -1,4 +1,11 @@
+# Python client for Camomile REST API
 
+## Installation
 
-documentation:
-http://camomile-project.github.io/camomile-server/ 
+```
+pip install camomile
+```
+
+## Documentation
+
+Available at http://camomile-project.github.io/camomile-server/ 
