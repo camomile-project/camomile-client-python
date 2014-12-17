@@ -35,13 +35,13 @@ versioneer.parentdir_prefix = 'camomile'
 from setuptools import setup, find_packages
 
 setup(
-    name='Camomile',
+    name='camomile',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    description='Python Client for Camomile API',
+    description='Python client for the Camomile API',
     author='Hervé Bredin',
     author_email='bredin@limsi.fr',
-    url='http://herve.niderb.fr',
+    url='http://github.com/camomile-project',
     packages=find_packages(),
     install_requires=[
         'six >= 1.5.2',
