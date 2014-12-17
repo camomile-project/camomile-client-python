@@ -46,6 +46,7 @@ setup(
     install_requires=[
         'six >= 1.5.2',
         'requests >= 2.2.1'
+        'simplejson >= 3.6.5'
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
