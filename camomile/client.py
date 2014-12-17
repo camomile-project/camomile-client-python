@@ -25,9 +25,7 @@
 # SOFTWARE.
 #
 
-import logging
 import requests
-import json
 import simplejson as json
 from six.moves.urllib_parse import urljoin
 import objectifier
