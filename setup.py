@@ -44,8 +44,8 @@ setup(
     url='http://github.com/camomile-project',
     packages=find_packages(),
     install_requires=[
-        'six >= 1.5.2',
-        'requests >= 2.2.1'
+        'six >= 1.8.0',
+        'requests >= 2.5.0',
         'simplejson >= 3.6.5'
     ],
     classifiers=[
