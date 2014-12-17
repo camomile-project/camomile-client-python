@@ -25,283 +25,270 @@
 # SOFTWARE.
 #
 
-import logging
 import requests
-import json
+import simplejson as json
 from six.moves.urllib_parse import urljoin
-
-
-class CMMLMixinAdmin():
-
-    ROLE_ADMIN = 'admin'
-    ROLE_USER = 'user'
-
-    def create_user(
-        self, username, password, affiliation, role=ROLE_USER
-    ):
-        route = 'signup'
-        data = {
-            'username': username, 'password': password,
-            'affiliation': affiliation,
-            'role': role
-        }
-        return self.post(route, data, returns_json=False)
+import time
 
 
 class CamomileClient(object):
 
-    def __init__(self, username, password, url):
-
+    def __init__(self, username, password, url, delay=0):
         super(CamomileClient, self).__init__()
 
         # add trailing slash if missing
         self.url = url + ('/' if url[-1] != '/' else '')
-
         self.session = requests.Session()
+        self.delay = delay
+        self.previous_call = 0.0
         self.login(username, password)
 
-    def get(self, route, returns_json=True):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.logout()
+
+    ### common function ###
+    def pause(self):
+        if self.delay > 0:
+            current_time = time.time()
+            elapsed = current_time - self.previous_call
+            if elapsed < self.delay:
+                time.sleep(self.delay - elapsed)
+            self.previous_call = current_time
+
+    def check_error(self, resp):
+        if 400 <= resp.status_code < 600:
+            try:
+                msg = '%s Error: %s - %s' % (
+                    resp.status_code, resp.reason, resp.json()['message'])
+            except:
+                msg = '%s Error: %s' % (resp.status_code, resp.reason)
+            raise requests.exceptions.HTTPError(msg, response=resp)
+
+    def get(self, route):
+        self.pause()
         url = urljoin(self.url, route)
         r = self.session.get(url)
-        if returns_json:
-            return r.json()
-        else:
-            return r
+        self.check_error(r)
+        return r.json()
 
-    def delete(self, route, returns_json=True):
+    def delete(self, route):
+        self.pause()
         url = urljoin(self.url, route)
         r = self.session.delete(url)
-        if returns_json:
-            return r.json()
-        else:
-            return r
+        self.check_error(r)
+        return r.json()
 
-    def post(self, route, data, returns_json=True):
+    def post(self, route, data):
+        self.pause()
         url = urljoin(self.url, route)
-        r = self.session.post(
-            url,
-            data=json.dumps(data),
-            headers={'Content-Type': 'application/json'}
-        )
-        if returns_json:
-            return r.json()
-        else:
-            return r
+        r = self.session.post(url,
+                              data=json.dumps(data),
+                              headers={'Content-Type': 'application/json'})
+        self.check_error(r)
+        return r.json()
 
-    def put(self, route, data, returns_json=True):
+    def put(self, route, data):
+        self.pause()
         url = urljoin(self.url, route)
-        r = self.session.put(
-            url,
-            data=json.dumps(data),
-            headers={'Content-Type': 'application/json'}
-        )
-        if returns_json:
-            return r.json()
-        else:
-            return r
+        r = self.session.put(url,
+                             data=json.dumps(data),
+                             headers={'Content-Type': 'application/json'})
+        self.check_error(r)
+        return r.json()
 
+    ### authenticate ###
     def login(self, username, password):
-        return self.post(
-            'login',
-            {'username': username, 'password': password},
-            returns_json=False
-        )
+        return self.post('login', {'username': username, 'password': password})
 
     def logout(self):
-        return self.get('logout')
+        return self.post('logout', {})
 
+    def me(self):
+        return self.get('me')
 
-class CMMLMixinData():
+    ### user ###
+    def create_user(self, data):
+        return self.post('user', data)
 
-    def corpus(self):
-        route = 'corpus'
-        results = self.get(route)
-        return [CMMLCorpus(r, client=self, corpus=r['_id']) for r in results]
+    def get_all_user(self):
+        return self.get('user')
 
-    def corpusByName(self, name):
-        for c in self.corpus():
-            if c.document['name'] == name:
-                return c
-        return None
+    def get_user(self, id_user):
+        return self.get('user/' + id_user)
 
-    def new_corpus(self, name):
-        route = 'corpus'
-        data = {'name': name}
-        r = self.post(route, data)
-        return CMMLCorpus(r, client=self, corpus=r['_id'])
+    def update_user(self, id_user, data):
+        return self.put('user/' + id_user, data)
 
+    def delete_user(self, id_user):
+        return self.delete('user/' + id_user)
 
-class CMMLCorpus(object):
+    def get_all_group_of_a_user(self, id_user):
+        return self.get('user/' + id_user + '/group')
 
-    def __init__(self, document, client=None, corpus=None):
-        super(CMMLCorpus, self).__init__()
-        self.document = document
-        self.client = client
-        self.corpus = corpus
+    ### group ###
+    def create_group(self, data):
+        return self.post('group', data)
 
-    def media(self):
-        route = 'corpus/%s/media' % self.corpus
-        results = self.client.get(route)
-        return [
-            CMMLMedia(r, client=self.client, corpus=self.corpus, media=r['_id'])
-            for r in results
-        ]
+    def get_all_group(self):
+        return self.get('group')
 
-    def mediaByName(self, name):
-        for m in self.media():
-            if m.document['name'] == name:
-                return m
-        return None
+    def get_group(self, id_group):
+        return self.get('group/' + id_group)
 
-    def new_media(self, name, url):
-        route = 'corpus/%s/media' % self.corpus
-        data = {'name': name, 'url': url}
-        r = self.client.post(route, data)
-        logging.info(r)
-        return CMMLMedia(r,
-            client=self.client, corpus=self.corpus, media=r['_id'])
+    def update_group(self, id_group, data):
+        return self.put('group/' + id_group, data)
 
-    def set_acl(self, username, userright):
-        route = 'corpus/%s/acl' % self.corpus
-        data = {'username': username, 'userright': userright}
-        r = self.client.put(route, data)
-        return r
+    def delete_group(self, id_group):
+        return self.delete('group/' + id_group)
 
-class CMMLMedia(object):
+    def add_user_to_a_group(self, id_group, id_user):
+        return self.put('group/' + id_group + '/user/' + id_user, {})
 
-    def __init__(self, document, client=None, corpus=None, media=None):
-        super(CMMLMedia, self).__init__()
-        self.document = document
-        self.client = client
-        self.corpus = corpus
-        self.media = media
+    def remove_user_to_a_group(self, id_group, id_user):
+        return self.delete('group/' + id_group + '/user/' + id_user)
 
-    def layer(self):
-        route = 'corpus/%s/media/%s/layer' % (self.corpus, self.media)
-        results = self.client.get(route)
-        return [
-            CMMLLayer(r,
-                client=self.client,
-                corpus=self.corpus, media=self.media, layer=r['_id']
-            ) for r in results
-        ]
+    ### corpus ###
+    def create_corpus(self, data):
+        return self.post('corpus', data)
 
-    def layerByName(self, name):
-        for l in self.layer():
-            if l.document['layer_type'] == name:
-                return l
-        return None
+    def get_all_corpus(self):
+        return self.get('corpus')
 
-    def new_layer_with(
-        self, layer_type, fragment_type, data_type, source, annotations
-    ):
-        route = 'corpus/%s/media/%s/layerAll' % (self.corpus, self.media)
-        data = {
-            'layer_type': layer_type,
-            'fragment_type': fragment_type,
-            'data_type': data_type,
-            'source': source,
-            'annotation': annotations
-        }
-        r = self.client.post(route, data)
-        return CMMLLayer(
-            r,
-            client=self.client,
-            corpus=self.corpus, media=self.media, layer=r['id_layer']
-        )
+    def get_corpus(self, id_corpus):
+        return self.get('corpus/' + id_corpus)
 
-    def new_layer(
-        self, layer_type, fragment_type, data_type, source
-    ):
+    def update_corpus(self, id_corpus, data):
+        return self.put('corpus/' + id_corpus, data)
 
-        route = 'corpus/%s/media/%s/layer' % (self.corpus, self.media)
+    def delete_corpus(self, id_corpus):
+        return self.delete('corpus/' + id_corpus)
 
-        data = {
-            'layer_type': layer_type,
-            'fragment_type': fragment_type,
-            'data_type': data_type,
-            'source': source,
-        }
+    def add_media(self, id_corpus, data):
+        return self.post('corpus/' + id_corpus + '/media', data)
 
-        r = self.client.post(route, data)
-        return CMMLLayer(
-            r,
-            client=self.client,
-            corpus=self.corpus, media=self.media, layer=r['_id']
-        )
+    def add_layer(self, id_corpus, data):
+        return self.post('corpus/' + id_corpus + '/layer', data)
 
-    def set_acl(self, username, userright):
-        route = 'corpus/%s/media/%s/acl' % (self.corpus, self.media)
-        data = {'username': username, 'userright': userright}
-        r = self.client.put(route, data)
-        return r
+    def get_all_media_of_a_corpus(self, id_corpus):
+        return self.get('corpus/' + id_corpus + '/media')
 
+    def get_all_layer_of_a_corpus(self, id_corpus):
+        return self.get('corpus/' + id_corpus + '/layer')
 
-class CMMLLayer(object):
+    def get_ACL_of_a_corpus(self, id_corpus):
+        return self.get('corpus/' + id_corpus + '/ACL')
 
-    def __init__(self, document, client=None, corpus=None, media=None, layer=None):
-        super(CMMLLayer, self).__init__()
-        self.document = document
-        self.client = client
-        self.corpus = corpus
-        self.media = media
-        self.layer = layer
+    def update_user_ACL_of_a_corpus(self, id_corpus, id_user, data):
+        return self.put('corpus/' + id_corpus + '/user/' + id_user, data)
 
-    def delete(self):
-        route = 'corpus/%s/media/%s/layer/%s' % (
-            self.corpus, self.media, self.layer)
-        return self.client.delete(route, returns_json=False)
+    def update_group_ACL_of_a_corpus(self, id_corpus, id_group, data):
+        return self.put('corpus/' + id_corpus + '/group/' + id_group, data)
 
-    def annotation(self):
-        route = 'corpus/%s/media/%s/layer/%s/annotation' % (
-            self.corpus, self.media, self.layer)
-        results = self.client.get(route)
-        return [
-            CMMLAnnotation(
-                r,
-                client=self.client,
-                corpus=self.corpus, media=self.media,
-                layer=self.layer, annotation=r['_id']
-            ) for r in results
-        ]
+    def remove_user_from_ACL_of_a_corpus(self, id_corpus, id_user):
+        return self.delete('corpus/' + id_corpus + '/user/' + id_user)
 
-    def new_annotation(self, fragment, data):
-        route = 'corpus/%s/media/%s/layer/%s/annotation' % (
-            self.corpus, self.media, self.layer)
-        data = {
-            'fragment': fragment,
-            'data': data,
-            'history': ''   # will be removed when API is fixed
-        }
-        r = self.client.post(route, data)
-        return CMMLLayer(
-            r,
-            client=self.client,
-            corpus=self.corpus, media=self.media, layer=r['_id']
-        )
+    def remove_group_from_ACL_of_a_corpus(self, id_corpus, id_group):
+        return self.delete('corpus/' + id_corpus + '/group/' + id_group)
 
-    def set_acl(self, username, userright):
-        route = 'corpus/%s/media/%s/layer/%s/acl' % (
-            self.corpus, self.media, self.layer)
-        data = {'username': username, 'userright': userright}
-        r = self.client.put(route, data)
-        return r
+    ### media ###
+    def get_all_media(self):
+        return self.get('media')
 
+    def get_media(self, id_media):
+        return self.get('media/' + id_media)
 
-class CMMLAnnotation(object):
+    def update_media(self, id_media, data):
+        return self.put('media/' + id_media, data)
 
-    def __init__(
-        self, document, client=None,
-        corpus=None, media=None, layer=None, annotation=None
-    ):
-        super(CMMLAnnotation, self).__init__()
-        self.document = document
-        self.client = client
-        self.corpus = corpus
-        self.media = media
-        self.layer = layer
-        self.annotation = annotation
+    def delete_media(self, id_media):
+        return self.delete('media/' + id_media)
 
+    def get_media_video_stream(self, id_media):
+        return self.get('media/' + id_media + '/video')
 
-class FullFeaturedCamomileClient(CamomileClient, CMMLMixinAdmin, CMMLMixinData):
-    pass
+    def get_media_webm_stream(self, id_media):
+        return self.get('media/' + id_media + '/webm')
+
+    def get_media_mp4_stream(self, id_media):
+        return self.get('media/' + id_media + '/mp4')
+
+    def get_media_ogv_stream(self, id_media):
+        return self.get('media/' + id_media + '/ogv')
+
+    ### layer ###
+    def get_all_layer(self):
+        return self.get('layer')
+
+    def get_layer(self, id_layer):
+        return self.get('layer/' + id_layer)
+
+    def update_layer(self, id_layer, data):
+        return self.put('layer/' + id_layer, data)
+
+    def delete_layer(self, id_layer):
+        return self.delete('layer/' + id_layer)
+
+    def add_annotation(self, id_layer, data):
+        return self.post('layer/' + id_layer + '/annotation', data)
+
+    def get_all_annotation_of_a_layer(self, id_layer, media=''):
+        if media == '':
+            return self.get('layer/' + id_layer + '/annotation')
+        else:
+            return self.get('layer/' + id_layer + '/annotation?media=' + media)
+
+    def get_ACL_of_a_layer(self, id_layer):
+        return self.get('layer/' + id_layer + '/ACL')
+
+    def update_user_ACL_of_a_layer(self, id_layer, id_user, data):
+        return self.put('layer/' + id_layer + '/user/' + id_user, data)
+
+    def update_group_ACL_of_a_layer(self, id_layer, id_group, data):
+        return self.put('layer/' + id_layer + '/group/' + id_group, data)
+
+    def remove_user_from_ACL_of_a_layer(self, id_layer, id_user):
+        return self.delete('layer/' + id_layer + '/user/' + id_user)
+
+    def remove_group_from_ACL_of_a_layer(self, id_layer, id_group):
+        return self.delete('layer/' + id_layer + '/group/' + id_group)
+
+    ### annotation ###
+    def get_all_annotation(self):
+        return self.get('annotation')
+
+    def get_annotation(self, id_annotation):
+        return self.get('annotation/' + id_annotation)
+
+    def update_annotation(self, id_annotation, data):
+        return self.put('annotation/' + id_annotation, data)
+
+    def delete_annotation(self, id_annotation):
+        return self.delete('annotation/' + id_annotation)
+
+    ### queue ###
+    def create_queue(self, data):
+        return self.post('queue', data)
+
+    def get_all_queue(self):
+        return self.get('queue')
+
+    def get_queue(self, id_queue):
+        return self.get('queue/' + id_queue)
+
+    def update_queue(self, id_queue, data):
+        return self.put('queue/' + id_queue, data)
+
+    def push_into_a_queue(self, id_queue, data):
+        return self.put('queue/' + id_queue + '/next', data)
+
+    def pop_a_queue(self, id_queue):
+        return self.get('queue/' + id_queue + '/next')
+
+    def delete_queue(self, id_queue):
+        return self.delete('queue/' + id_queue)
+
+    def get_date(self):
+        return self.get('date')
