@@ -59,12 +59,20 @@ class CamomileClient(object):
             if elapsed < self.delay :
                 time.sleep(self.delay - elapsed)
             self.previous_call = current_time
-    
+
+    def check_error(self, resp):
+        if 400 <= resp.status_code < 600 :
+            try:
+                msg = '%s Error: %s - %s' % (resp.status_code, resp.reason, resp.json()['message'])
+            except:
+                msg = '%s Error: %s - %s' % (resp.status_code, resp.reason)
+            raise requests.exceptions.HTTPError(msg, response=resp)
+                
     def get(self, route):
         self.pause()
         url = urljoin(self.url, route)
         r = self.session.get(url)
-        r.raise_for_status()
+        self.check_error(r)
         if self.dict_or_objectifier:
             return objectifier.Objectifier(r.json())          
         return r.json()
@@ -73,7 +81,7 @@ class CamomileClient(object):
         self.pause()
         url = urljoin(self.url, route)
         r = self.session.delete(url)
-        r.raise_for_status()
+        self.check_error(r)
         if self.dict_or_objectifier:
             return objectifier.Objectifier(r.json())          
         return r.json()
@@ -82,7 +90,7 @@ class CamomileClient(object):
         self.pause()
         url = urljoin(self.url, route)
         r = self.session.post(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
-        r.raise_for_status()
+        self.check_error(r)
         if self.dict_or_objectifier:
             return objectifier.Objectifier(r.json())          
         return r.json()
@@ -91,7 +99,7 @@ class CamomileClient(object):
         self.pause()
         url = urljoin(self.url, route)
         r = self.session.put(url, data=json.dumps(data), headers={'Content-Type': 'application/json'})
-        r.raise_for_status()
+        self.check_error(r)
         if self.dict_or_objectifier:
             return objectifier.Objectifier(r.json())          
         return r.json()
