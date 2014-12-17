@@ -31,3 +31,5 @@ del get_versions
 
 
 from client import CamomileClient
+
+__all__ = ['CamomileClient']
