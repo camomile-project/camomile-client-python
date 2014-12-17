@@ -65,7 +65,7 @@ class CamomileClient(object):
             try:
                 msg = '%s Error: %s - %s' % (resp.status_code, resp.reason, resp.json()['message'])
             except:
-                msg = '%s Error: %s - %s' % (resp.status_code, resp.reason)
+                msg = '%s Error: %s' % (resp.status_code, resp.reason)
             raise requests.exceptions.HTTPError(msg, response=resp)
                 
     def get(self, route):
