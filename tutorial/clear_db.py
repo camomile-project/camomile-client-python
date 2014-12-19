@@ -5,7 +5,7 @@ import json
 
 if __name__ == '__main__':
 	URL = "http://localhost:3000"
-	root_client = camomile.client.CamomileClient('root', "camomile", URL, False)
+	root_client = camomile.client.CamomileClient('root', "camomile", URL, 0.0)
 
 	l_queue = root_client.get_all_queue()
 	for ele in l_queue:

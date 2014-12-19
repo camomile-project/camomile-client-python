@@ -3,19 +3,18 @@ import json
 
 if __name__ == '__main__':
     URL = "http://localhost:3000"
-    root_client = camomile.client.CamomileClient('root', "camomile", URL, False)
+    root_client = camomile.client.CamomileClient('root', "camomile", URL, 0.0)
 
     # print information on user logged in
     user = root_client.me()
     print json.dumps(user, indent=2, sort_keys=True)
 
     # create a user
-    data = {"username":"u1", "password":"pwd_u1", "role":"user"}
-    user1 = root_client.create_user(data)
+    user1 = root_client.create_user(username="u1", password="pwd_u1", role="user")
     print json.dumps(user1, indent=2, sort_keys=True)
 
     # loggin as u1
-    user1_client = camomile.client.CamomileClient('u1', "pwd_u1", URL, False)
+    user1_client = camomile.client.CamomileClient('u1', "pwd_u1", URL, 0.0)
     user1 = user1_client.me()
     print json.dumps(user1, indent=2, sort_keys=True)
 
@@ -24,13 +23,11 @@ if __name__ == '__main__':
     print json.dumps(mes, indent=2, sort_keys=True) 
 
     # update user
-    data = {"role":"admin"}
-    user1 = root_client.update_user(user1['_id'], data)
+    user1 = root_client.update_user(user1['_id'], role="admin")
     print json.dumps(user1, indent=2, sort_keys=True)    
 
     # create group
-    data = {"name":"g1"}
-    group1 = root_client.create_group(data)
+    group1 = root_client.create_group(name="g1")
     print json.dumps(group1, indent=2, sort_keys=True)    
 
     # add_user_to_a_group

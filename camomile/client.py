@@ -60,7 +60,7 @@ class CamomileClient(object):
 
     def check_error(self, resp):
         if 400 <= resp.status_code < 600:
-            try:
+            try:    
                 msg = '%s Error: %s - %s' % (
                     resp.status_code, resp.reason, resp.json()['message'])
             except:
@@ -81,7 +81,7 @@ class CamomileClient(object):
         self.check_error(r)
         return r.json()
 
-    def post(self, route, data):
+    def post(self, route, data=None):
         self.pause()
         url = urljoin(self.url, route)
         r = self.session.post(url,
@@ -90,7 +90,7 @@ class CamomileClient(object):
         self.check_error(r)
         return r.json()
 
-    def put(self, route, data):
+    def put(self, route, data=None):
         self.pause()
         url = urljoin(self.url, route)
         r = self.session.put(url,
@@ -110,7 +110,13 @@ class CamomileClient(object):
         return self.get('me')
 
     ### user ###
-    def create_user(self, data):
+    def create_user(self, username, password, description=None, role='user'):
+        data = {}
+        data['username'] = username
+        data['password'] = password
+        data['role'] = role
+        if description:
+            data['description'] = description
         return self.post('user', data)
 
     def get_all_user(self):
@@ -119,7 +125,16 @@ class CamomileClient(object):
     def get_user(self, id_user):
         return self.get('user/' + id_user)
 
-    def update_user(self, id_user, data):
+    def update_user(self, id_user, username=None, password=None, description=None, role=None):
+        data = {}        
+        if username:
+            data['username'] = username
+        if password:
+            data['password'] = password
+        if role:
+            data['role'] = role
+        if description:
+            data['description'] = description
         return self.put('user/' + id_user, data)
 
     def delete_user(self, id_user):
@@ -129,7 +144,11 @@ class CamomileClient(object):
         return self.get('user/' + id_user + '/group')
 
     ### group ###
-    def create_group(self, data):
+    def create_group(self, name, description=None):
+        data = {}        
+        data['name'] = name
+        if description:
+            data['description'] = description        
         return self.post('group', data)
 
     def get_all_group(self):
@@ -138,7 +157,12 @@ class CamomileClient(object):
     def get_group(self, id_group):
         return self.get('group/' + id_group)
 
-    def update_group(self, id_group, data):
+    def update_group(self, id_group, name=None, description=None):
+        data = {}        
+        if name:
+            data['name'] = name
+        if description:
+            data['description'] = description         
         return self.put('group/' + id_group, data)
 
     def delete_group(self, id_group):
@@ -151,7 +175,11 @@ class CamomileClient(object):
         return self.delete('group/' + id_group + '/user/' + id_user)
 
     ### corpus ###
-    def create_corpus(self, data):
+    def create_corpus(self, name, description=None):
+        data = {}        
+        data['name'] = name
+        if description:
+            data['description'] = description 
         return self.post('corpus', data)
 
     def get_all_corpus(self):
@@ -160,16 +188,35 @@ class CamomileClient(object):
     def get_corpus(self, id_corpus):
         return self.get('corpus/' + id_corpus)
 
-    def update_corpus(self, id_corpus, data):
+    def update_corpus(self, id_corpus, name=None, description=None):
+        data = {}        
+        if name:
+            data['name'] = name
+        if description:
+            data['description'] = description 
         return self.put('corpus/' + id_corpus, data)
 
     def delete_corpus(self, id_corpus):
         return self.delete('corpus/' + id_corpus)
 
-    def add_media(self, id_corpus, data):
+    def add_media(self, id_corpus, name, url=None, description=None):
+        data = {}        
+        data['name'] = name
+        if url:
+            data['url'] = url         
+        if description:
+            data['description'] = description 
         return self.post('corpus/' + id_corpus + '/media', data)
 
-    def add_layer(self, id_corpus, data):
+    def add_layer(self, id_corpus, name, fragment_type, data_type, description=None, annotations=None):
+        data = {}        
+        data['name'] = name
+        data['fragment_type'] = fragment_type
+        data['data_type'] = data_type
+        if description:
+            data['description'] = description 
+        if annotations:
+            data['annotations'] = annotations             
         return self.post('corpus/' + id_corpus + '/layer', data)
 
     def get_all_media_of_a_corpus(self, id_corpus):
@@ -181,11 +228,11 @@ class CamomileClient(object):
     def get_ACL_of_a_corpus(self, id_corpus):
         return self.get('corpus/' + id_corpus + '/ACL')
 
-    def update_user_ACL_of_a_corpus(self, id_corpus, id_user, data):
-        return self.put('corpus/' + id_corpus + '/user/' + id_user, data)
+    def update_user_ACL_of_a_corpus(self, id_corpus, id_user, right):
+        return self.put('corpus/' + id_corpus + '/user/' + id_user, {"right":right})
 
-    def update_group_ACL_of_a_corpus(self, id_corpus, id_group, data):
-        return self.put('corpus/' + id_corpus + '/group/' + id_group, data)
+    def update_group_ACL_of_a_corpus(self, id_corpus, id_group, right):
+        return self.put('corpus/' + id_corpus + '/group/' + id_group, {"right":right})
 
     def remove_user_from_ACL_of_a_corpus(self, id_corpus, id_user):
         return self.delete('corpus/' + id_corpus + '/user/' + id_user)
@@ -200,7 +247,14 @@ class CamomileClient(object):
     def get_media(self, id_media):
         return self.get('media/' + id_media)
 
-    def update_media(self, id_media, data):
+    def update_media(self, id_media, name=None, url=None, description=None):
+        data = {}        
+        if name:
+            data['name'] = name
+        if url:
+            data['url'] = url         
+        if description:
+            data['description'] = description 
         return self.put('media/' + id_media, data)
 
     def delete_media(self, id_media):
@@ -225,14 +279,28 @@ class CamomileClient(object):
     def get_layer(self, id_layer):
         return self.get('layer/' + id_layer)
 
-    def update_layer(self, id_layer, data):
+    def update_layer(self, id_layer, name=None, fragment_type=None, data_type=None, description=None):
+        data = {}        
+        if name:
+            data['name'] = name
+        if fragment_type:
+            data['fragment_type'] = fragment_type         
+        if data_type:
+            data['data_type'] = data_type      
+        if description:
+            data['description'] = description
         return self.put('layer/' + id_layer, data)
 
     def delete_layer(self, id_layer):
         return self.delete('layer/' + id_layer)
 
-    def add_annotation(self, id_layer, data):
-        return self.post('layer/' + id_layer + '/annotation', data)
+    def add_annotation(self, id_layer, fragment, data, id_media=None):
+        data_send = {}        
+        data_send['fragment'] = fragment
+        data_send['data'] = data         
+        if id_media:
+            data_send['id_media'] = id_media
+        return self.post('layer/' + id_layer + '/annotation', data_send)
 
     def get_all_annotation_of_a_layer(self, id_layer, media=''):
         if media == '':
@@ -243,11 +311,11 @@ class CamomileClient(object):
     def get_ACL_of_a_layer(self, id_layer):
         return self.get('layer/' + id_layer + '/ACL')
 
-    def update_user_ACL_of_a_layer(self, id_layer, id_user, data):
-        return self.put('layer/' + id_layer + '/user/' + id_user, data)
+    def update_user_ACL_of_a_layer(self, id_layer, id_user, right):
+        return self.put('layer/' + id_layer + '/user/' + id_user, {"right":right})
 
-    def update_group_ACL_of_a_layer(self, id_layer, id_group, data):
-        return self.put('layer/' + id_layer + '/group/' + id_group, data)
+    def update_group_ACL_of_a_layer(self, id_layer, id_group, right):
+        return self.put('layer/' + id_layer + '/group/' + id_group, {"right":right})
 
     def remove_user_from_ACL_of_a_layer(self, id_layer, id_user):
         return self.delete('layer/' + id_layer + '/user/' + id_user)
@@ -262,14 +330,21 @@ class CamomileClient(object):
     def get_annotation(self, id_annotation):
         return self.get('annotation/' + id_annotation)
 
-    def update_annotation(self, id_annotation, data):
-        return self.put('annotation/' + id_annotation, data)
+    def update_annotation(self, id_annotation, fragment=None, data=None, id_media=None):
+        data_send = {}        
+        if fragment:
+            data_send['fragment'] = fragment
+        if data:
+            data_send['data'] = data         
+        if id_media:
+            data_send['id_media'] = id_media
+        return self.put('annotation/' + id_annotation, data_send)
 
     def delete_annotation(self, id_annotation):
         return self.delete('annotation/' + id_annotation)
 
     ### queue ###
-    def create_queue(self, data):
+    def create_queue(self, data=None):
         return self.post('queue', data)
 
     def get_all_queue(self):
@@ -278,10 +353,10 @@ class CamomileClient(object):
     def get_queue(self, id_queue):
         return self.get('queue/' + id_queue)
 
-    def update_queue(self, id_queue, data):
+    def update_queue(self, id_queue, data=None):
         return self.put('queue/' + id_queue, data)
 
-    def push_into_a_queue(self, id_queue, data):
+    def push_into_a_queue(self, id_queue, data=None):
         return self.put('queue/' + id_queue + '/next', data)
 
     def pop_a_queue(self, id_queue):
