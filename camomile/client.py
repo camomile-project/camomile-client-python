@@ -182,10 +182,12 @@ class CamomileClient(object):
             data['description'] = description 
         return self.post('corpus', data)
 
-    def get_all_corpus(self, history=False):
+    def get_all_corpus(self, history=False, name=None):
         param = '?'
         if history:
             param+='history=ON&'
+        if name:
+            param+='name='+name+'&'            
         return self.get('corpus'+param[:-1])
 
     def get_corpus(self, id_corpus, history=False):
@@ -222,19 +224,28 @@ class CamomileClient(object):
         if description:
             data['description'] = description 
         if annotations:
-            data['annotations'] = annotations             
+            data['annotations'] = annotations
+        print data        
         return self.post('corpus/' + id_corpus + '/layer', data)
 
-    def get_all_media_of_a_corpus(self, id_corpus, history=False):
+    def get_all_media_of_a_corpus(self, id_corpus, history=False, name=None):
         param = '?'
         if history:
             param+='history=ON&'
+        if name:
+            param+='name='+name+'&'    
         return self.get('corpus/' + id_corpus + '/media'+param[:-1])
 
-    def get_all_layer_of_a_corpus(self, id_corpus, history=False):
+    def get_all_layer_of_a_corpus(self, id_corpus, history=False, name=None, fragment_type=None, data_type=None):
         param = '?'
         if history:
             param+='history=ON&'
+        if name:
+            param+='name='+name+'&'             
+        if fragment_type:
+            param+='fragment_type='+fragment_type+'&' 
+        if data_type:
+            param+='data_type='+data_type+'&'
         return self.get('corpus/' + id_corpus + '/layer'+param[:-1])
 
     def get_ACL_of_a_corpus(self, id_corpus):
@@ -253,10 +264,12 @@ class CamomileClient(object):
         return self.delete('corpus/' + id_corpus + '/group/' + id_group)
 
     ### media ###
-    def get_all_media(self, history=False):
+    def get_all_media(self, history=False, name=None):
         param = '?'
         if history:
             param+='history=ON&'
+        if name:
+            param+='name='+name+'&' 
         return self.get('media'+param[:-1])
 
     def get_media(self, id_media, history=False):
@@ -291,10 +304,16 @@ class CamomileClient(object):
         return self.get('media/' + id_media + '/ogv')
 
     ### layer ###
-    def get_all_layer(self, history=False):
+    def get_all_layer(self, history=False, name=None, fragment_type=None, data_type=None):
         param = '?'
         if history:
             param+='history=ON&'
+        if name:
+            param+='name='+name+'&'             
+        if fragment_type:
+            param+='fragment_type='+fragment_type+'&' 
+        if data_type:
+            param+='data_type='+data_type+'&'
         return self.get('layer'+param[:-1])
 
     def get_layer(self, id_layer, history=False):
@@ -326,12 +345,16 @@ class CamomileClient(object):
             data_send['id_media'] = id_media
         return self.post('layer/' + id_layer + '/annotation', data_send)
 
-    def get_all_annotation_of_a_layer(self, id_layer, media='', history=False):
+    def get_all_annotation_of_a_layer(self, id_layer, history=False, id_media=None, fragment=None, data=None):
         param = '?'
-        if media != '':
-            param+='media=' + media + '&'
         if history:
             param+='history=ON&'
+        if id_media:
+            param+='id_media=' + id_media + '&'
+        if fragment:
+            param+='fragment=' + fragment + '&'
+        if data:
+            param+='data=' + data + '&'            
         return self.get('layer/' + id_layer + '/annotation'+param[:-1])
 
     def get_ACL_of_a_layer(self, id_layer):
@@ -350,10 +373,18 @@ class CamomileClient(object):
         return self.delete('layer/' + id_layer + '/group/' + id_group)
 
     ### annotation ###
-    def get_all_annotation(self, history=False):
+    def get_all_annotation(self, history=False, id_layer=None, id_media=None, fragment=None, data=None):
         param = '?'
         if history:
-            param+='history=ON&'        
+            param+='history=ON&'  
+        if id_layer:
+            param+='id_layer=' + id_layer + '&'
+        if id_media:
+            param+='id_media=' + id_media + '&'
+        if fragment:
+            param+='fragment=' + fragment + '&'
+        if data:
+            param+='data=' + data + '&'                   
         return self.get('annotation'+param[:-1])
 
     def get_annotation(self, id_annotation, history=False):
