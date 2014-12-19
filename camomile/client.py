@@ -182,12 +182,18 @@ class CamomileClient(object):
             data['description'] = description 
         return self.post('corpus', data)
 
-    def get_all_corpus(self):
-        return self.get('corpus')
+    def get_all_corpus(self, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'
+        return self.get('corpus'+param[:-1])
 
-    def get_corpus(self, id_corpus):
-        return self.get('corpus/' + id_corpus)
-
+    def get_corpus(self, id_corpus, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'
+        return self.get('corpus/' + id_corpus+ param[:-1])    
+        
     def update_corpus(self, id_corpus, name=None, description=None):
         data = {}        
         if name:
@@ -219,11 +225,17 @@ class CamomileClient(object):
             data['annotations'] = annotations             
         return self.post('corpus/' + id_corpus + '/layer', data)
 
-    def get_all_media_of_a_corpus(self, id_corpus):
-        return self.get('corpus/' + id_corpus + '/media')
+    def get_all_media_of_a_corpus(self, id_corpus, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'
+        return self.get('corpus/' + id_corpus + '/media'+param[:-1])
 
-    def get_all_layer_of_a_corpus(self, id_corpus):
-        return self.get('corpus/' + id_corpus + '/layer')
+    def get_all_layer_of_a_corpus(self, id_corpus, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'
+        return self.get('corpus/' + id_corpus + '/layer'+param[:-1])
 
     def get_ACL_of_a_corpus(self, id_corpus):
         return self.get('corpus/' + id_corpus + '/ACL')
@@ -241,11 +253,17 @@ class CamomileClient(object):
         return self.delete('corpus/' + id_corpus + '/group/' + id_group)
 
     ### media ###
-    def get_all_media(self):
-        return self.get('media')
+    def get_all_media(self, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'
+        return self.get('media'+param[:-1])
 
-    def get_media(self, id_media):
-        return self.get('media/' + id_media)
+    def get_media(self, id_media, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'
+        return self.get('media/' + id_media+param[:-1])
 
     def update_media(self, id_media, name=None, url=None, description=None):
         data = {}        
@@ -273,11 +291,17 @@ class CamomileClient(object):
         return self.get('media/' + id_media + '/ogv')
 
     ### layer ###
-    def get_all_layer(self):
-        return self.get('layer')
+    def get_all_layer(self, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'
+        return self.get('layer'+param[:-1])
 
-    def get_layer(self, id_layer):
-        return self.get('layer/' + id_layer)
+    def get_layer(self, id_layer, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&' 
+        return self.get('layer/' + param[:-1])
 
     def update_layer(self, id_layer, name=None, fragment_type=None, data_type=None, description=None):
         data = {}        
@@ -302,11 +326,13 @@ class CamomileClient(object):
             data_send['id_media'] = id_media
         return self.post('layer/' + id_layer + '/annotation', data_send)
 
-    def get_all_annotation_of_a_layer(self, id_layer, media=''):
-        if media == '':
-            return self.get('layer/' + id_layer + '/annotation')
-        else:
-            return self.get('layer/' + id_layer + '/annotation?media=' + media)
+    def get_all_annotation_of_a_layer(self, id_layer, media='', history=False):
+        param = '?'
+        if media != '':
+            param+='media=' + media + '&'
+        if history:
+            param+='history=ON&'
+        return self.get('layer/' + id_layer + '/annotation'+param[:-1])
 
     def get_ACL_of_a_layer(self, id_layer):
         return self.get('layer/' + id_layer + '/ACL')
@@ -324,11 +350,17 @@ class CamomileClient(object):
         return self.delete('layer/' + id_layer + '/group/' + id_group)
 
     ### annotation ###
-    def get_all_annotation(self):
-        return self.get('annotation')
+    def get_all_annotation(self, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'        
+        return self.get('annotation'+param[:-1])
 
-    def get_annotation(self, id_annotation):
-        return self.get('annotation/' + id_annotation)
+    def get_annotation(self, id_annotation, history=False):
+        param = '?'
+        if history:
+            param+='history=ON&'        
+        return self.get('annotation/' + id_annotation+param[:-1])
 
     def update_annotation(self, id_annotation, fragment=None, data=None, id_media=None):
         data_send = {}        
