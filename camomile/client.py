@@ -4,8 +4,8 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2014 Hervé BREDIN (http://herve.niderb.fr/)
-#
+# Copyright (c) 2014-2015 CNRS
+
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -25,374 +25,1062 @@
 # SOFTWARE.
 #
 
-import requests
-import simplejson as json
-from six.moves.urllib_parse import urljoin
-import time
+# AUTHORS
+# Hervé BREDIN (http://herve.niderb.fr/)
+# Johann POIGNANT
+# Claude BARRAS
 
 
-class CamomileClient(object):
+import tortilla
 
-    def __init__(self, username, password, url, delay=0):
-        super(CamomileClient, self).__init__()
 
-        # add trailing slash if missing
-        self.url = url + ('/' if url[-1] != '/' else '')
-        self.session = requests.Session()
-        self.delay = delay
-        self.previous_call = 0.0
-        self.login(username, password)
+class Camomile(object):
+    """Client for Camomile REST API
+
+    Parameters
+    ----------
+    url : str
+        Base URL of Camomile API.
+    username, password : str, optional
+        If provided, an attempt is made to log in.
+    delay : float, optional
+        If provided, make sure at least `delay` seconds pass between
+        each request to the Camomile API.  Defaults to no delay.
+
+    Example
+    -------
+    >>> url = 'http://camomile.fr'
+    >>> client = Camomile(url)
+    >>> client.login(username='root', password='password')
+    >>> corpora = client.getCorpora(returns_id=True)
+    >>> corpus = corpora[0]
+    >>> layers = client.getLayers(corpus=corpus)
+    >>> media = client.getMedia(corpus=corpus)
+    >>> client.logout()
+    """
+
+    def __init__(self, url, username=None, password=None, delay=None):
+        super(Camomile, self).__init__()
+
+        # internally rely on tortilla generic API wrapper
+        # see http://github.com/redodo/tortilla
+        self._api = tortilla.wrap(url, format='json', delay=delay)
+
+        # log in if `username` is provided
+        if username:
+            self.login(username, password)
 
     def __enter__(self):
+        """
+        Example
+        -------
+        >>> url = 'http://camomile.fr'
+        >>> with Camomile(url, username='root', password='password') as client:
+        >>>     corpora = client.corpus()
+        """
         return self
 
     def __exit__(self, type, value, traceback):
         self.logout()
 
-    # common function #
+    # def _check_error(self, resp):
+    #     if 400 <= resp.status_code < 600:
+    #         try:
+    #             msg = '%s Error: %s - %s' % (
+    #                 resp.status_code, resp.reason, resp.json()['message'])
+    #         except:
+    #             msg = '%s Error: %s' % (resp.status_code, resp.reason)
+    #         raise requests.exceptions.HTTPError(msg, response=resp)
 
-    def _pause(self):
-        if self.delay > 0:
-            current_time = time.time()
-            elapsed = current_time - self.previous_call
-            if elapsed < self.delay:
-                time.sleep(self.delay - elapsed)
-            self.previous_call = current_time
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # HELPER FUNCTIONS
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def _check_error(self, resp):
-        if 400 <= resp.status_code < 600:
-            try:
-                msg = '%s Error: %s - %s' % (
-                    resp.status_code, resp.reason, resp.json()['message'])
-            except:
-                msg = '%s Error: %s' % (resp.status_code, resp.reason)
-            raise requests.exceptions.HTTPError(msg, response=resp)
+    def _user(self, id_user=None):
+        user = self._api.user
+        if id_user:
+            user = user(id_user)
+        return user
 
-    def _get(self, route):
-        self._pause()
-        url = urljoin(self.url, route)
-        r = self.session.get(url)
-        self._check_error(r)
-        return r.json()
+    def _group(self, id_group=None):
+        group = self._api.group
+        if id_group:
+            group = group(id_group)
+        return group
 
-    def _delete(self, route):
-        self._pause()
-        url = urljoin(self.url, route)
-        r = self.session.delete(url)
-        self._check_error(r)
-        return r.json()
+    def _corpus(self, id_corpus):
+        corpus = self._api.corpus
+        if id_corpus:
+            corpus = corpus(id_corpus)
+        return corpus
 
-    def _post(self, route, data=None):
-        self._pause()
-        url = urljoin(self.url, route)
-        r = self.session.post(url,
-                              data=json.dumps(data),
-                              headers={'Content-Type': 'application/json'})
-        self._check_error(r)
-        return r.json()
+    def _media(self, medium):
+        media = self._api.media
+        if medium:
+            media = media(medium)
+        return media
 
-    def _put(self, route, data=None):
-        self._pause()
-        url = urljoin(self.url, route)
-        r = self.session.put(url,
-                             data=json.dumps(data),
-                             headers={'Content-Type': 'application/json'})
-        self._check_error(r)
-        return r.json()
+    def _layer(self, id_layer):
+        layer = self._api.layer
+        if id_layer:
+            layer = layer(id_layer)
+        return layer
 
-    # authenticate #
+    def _annotation(self, id_annotation):
+        annotation = self._api.annotation
+        if id_annotation:
+            annotation = annotation(id_annotation)
+        return annotation
+
+    def _queue(self, id_queue):
+        queue = self._api.queue
+        if id_queue:
+            queue = queue(id_queue)
+        return queue
+
+    def _id(self, result):
+        if isinstance(result, list):
+            return [r._id for r in result]
+        return result._id
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # AUTHENTICATION
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     def login(self, username, password):
-        return self._post('login', {'username': username, 'password': password})
+        """Login
+
+        Parameters
+        ----------
+        username, password : str
+
+        """
+        data = {'username': username,
+                'password': password}
+        return self._api.login.post(data=data)
 
     def logout(self):
-        return self._post('logout', {})
+        """Logout"""
+        return self._api.logout.post()
 
     def me(self):
-        return self._get('me')
-    # alias
-    get_me = me
+        """Get information about logged in user"""
+        return self._api.me.get()
 
-    # user #
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # USERS
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def create_user(self, username, password, description='', role='user'):
-        params = {'username': username, 'password': password,
-                  'description': description, 'role': role}
-        return self._post('user', params)
+    def getUsers(self, user=None, username=None, returns_id=False):
+        """Get user(s)
 
-    def get_user(self, id_user=None):
-        if id_user is None:
-            return self._get('user')
-        else:
-            return self._get('user/' + id_user)
+        Parameters
+        ----------
+        user : str, optional
+            Get user with id `user`.  Defaults to all users.
+        returns_id : boolean, optional.
+            Returns IDs rather than user dictionaries.
 
-    def get_user_id(self, username):
-        return {i['username']: i['_id'] for i in self._get_user()}[username]
+        Returns
+        -------
+        users : dict or list
+            User dictionary
 
-    def update_user(self, id_user, password=None, description=None, role=None):
-        params = {}
+        Example
+        -------
+        >>> client.get_user(user='54eecd4529')
+        >>> client.get_user()
+        >>> client.get_user(username='johndoe')
+        """
+        params = {'username': username} if username else None
+        result = self._user(user).get(params=params)
+        return self._id(result) if returns_id else result
+
+    def createUser(self,
+                   username, password,
+                   description=None, role='user',
+                   returns_id=False):
+        """Create new user
+
+        Parameters
+        ----------
+        username, password : str, optional
+        description : object, optional
+            Must be JSON serializable.
+        role : {'user', 'admin'}, optional
+            Defaults to 'user'.
+        returns_id : boolean, optional.
+            Returns IDs rather than user dictionaries.
+
+        Returns
+        -------
+        user : dict
+            Newly created user.
+        """
+
+        data = {'username': username,
+                'password': password,
+                'description': description,
+                'role': role}
+
+        result = self._user().post(data=data)
+        return self._id(result) if returns_id else result
+
+    def updateUser(self, user, password=None, description=None, role=None):
+        """Update existing user
+
+        Parameters
+        ----------
+        user : str
+            User ID.
+        password : str, optional
+            Set new password.
+        description : object, optional
+            Set new description. Must be JSON serializable.
+        role : {'user', 'admin'}, optional
+            Set new role.
+
+        Returns
+        -------
+        user : dict
+            Updated user.
+        """
+        data = {}
+
         if password is not None:
-            params['password'] = password
+            data['password'] = password
+
         if description is not None:
-            params['description'] = description
+            data['description'] = description
+
         if role is not None:
-            params['role'] = role
-        return self._put('user/' + id_user, params)
+            data['role'] = role
 
-    def delete_user(self, id_user):
-        return self._delete('user/' + id_user)
+        return self._user(user).put(data=data)
 
-    def get_user_group(self, id_user):
-        return self._get('user/' + id_user + '/group')
+    def deleteUser(self, user):
+        """Delete existing user
 
-    # group #
+        Parameters
+        ----------
+        user : str
+            User ID.
+        """
+        return self._user(user).delete()
 
-    def create_group(self, name, description=''):
-        params = {'name': name, 'description': description}
-        return self._post('group', params)
+    def getUserGroups(self, user):
+        """Get groups of existing user
 
-    def get_group(self, id_group=None):
-        if id_group is None:
-            return self._get('group')
-        else:
-            return self._get('group/' + id_group)
+        Parameters
+        ----------
+        user : str
 
-    def get_group_id(self, name):
-        return {i['name']: i['_id'] for i in self._get_group()}[name]
+        Returns
+        -------
+        groups : list
+            List of user's groups
+        """
+        return self._user(user).group.get()
 
-    def update_group(self, id_group, description):
-        params = {'description': description}
-        return self._put('group/' + id_group, params)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # GROUPS
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def delete_group(self, id_group):
-        return self._delete('group/' + id_group)
+    def getGroups(self, group=None, name=None, returns_id=False):
+        """Get group(s)
 
-    def update_group_user(self, id_group, id_user):
-        return self._put('group/' + id_group + '/user/' + id_user, {})
+        Parameters
+        ----------
+        group : str, optional
+            Group ID.  Defaults to all groups.
+        name : str, optional
+            Get group by name.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
 
-    # alias
-    add_group_user = update_group_user
+        Returns
+        -------
+        groups : dict or list
+            Group
+        """
+        params = {'name': name} if name else None
+        result = self._group(group).get(params=params)
+        return self._id(result) if returns_id else result
 
-    def delete_group_user(self, id_group, id_user):
-        return self._delete('group/' + id_group + '/user/' + id_user)
-    # alias
-    remove_group_user = delete_group_user
+    def createGroup(self, name, description=None, returns_id=False):
+        """Create new group
 
-    # corpus #
+        Parameters
+        ----------
+        name : str
+            Group name.
+        description : object, optional
+            Group description. Must be JSON serializable.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
 
-    def create_corpus(self, name, description=''):
-        params = {'name': name, 'description': description}
-        return self._post('corpus', params)
+        Returns
+        -------
+        group : dict
+            Newly created group.
 
-    def get_corpus(self, id_corpus=None, history=False):
-        history = '?history=ON' if history else ''
-        if id_corpus is None:
-            return self._get('corpus' + history)
-        else:
-            return self._get('corpus/' + id_corpus + history)
+        Example
+        -------
+        >>> description = {'country': 'France',
+        ...                'town': 'Orsay'}
+        >>> client.create_group('LIMSI', description=description)
 
-    def get_corpus_id(self, name):
-        return {i['name']: i['_id'] for i in self._get_corpus()}[name]
+        """
+        data = {'name': name,
+                'description': description if description else {}}
 
-    def update_corpus(self, id_corpus, name=None, description=None):
-        params = {}
-        if name is not None:
+        result = self._group.post(data=data)
+        return self._id(result) if returns_id else result
+
+    def updateGroup(self, group, description=None):
+        """Update existing group
+
+        Parameters
+        ----------
+        group : str
+            Group ID.
+        description : object, optional
+
+        Returns
+        -------
+        group : dict
+            Updated group.
+        """
+        data = {'description': description}
+        return self._group(group).put(data=data)
+
+    def deleteGroup(self, group):
+        """Delete existing group
+
+        Parameters
+        ----------
+        group : str
+            Group ID.
+        """
+        return self._group(group).delete()
+
+    def addUserToGroup(self, user, group):
+        return self._group(group).user(user).put()
+
+    def removeUserFromGroup(self, user, group):
+        return self._group(group).user(user).delete()
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # CORPORA
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def getCorpora(self, corpus=None, name=None, history=False,
+                   returns_id=False):
+        """Get corpora
+
+        Parameters
+        ----------
+        corpus : str, optional
+            Get corpus by ID.
+        name : str, optional
+            Get corpus by name.
+        history : boolean, optional
+            Whether to return history.  Defaults to False.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        corpus : dict or list
+            Selected corpus or list of corpora.
+
+        """
+        params = {'history': 'on' if history else 'off'}
+        if name:
             params['name'] = name
-        if description is not None:
-            params['description'] = description
-        return self._put('corpus/' + id_corpus, params)
 
-    def delete_corpus(self, id_corpus):
-        return self._delete('corpus/' + id_corpus)
+        result = self._corpus(corpus).get(params=params)
+        return self._id(result) if returns_id else result
 
-    def create_corpus_media(self, id_corpus, media_list=None, name=None,
-                            url='', description=''):
-        if media_list is not None:
-            params = media_list
+    def createCorpus(self, name, description=None, returns_id=False):
+        """Create new corpus
+
+        Parameters
+        ----------
+        name : str
+            Corpus name.
+        description : object, optional
+            Corpus description. Must be JSON-serializable.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        corpus : dict
+            Newly created corpus.
+        """
+        data = {'name': name,
+                'description': description if description else {}}
+        result = self._corpus.post(data=data)
+        return self._id(result) if returns_id else result
+
+    def updateCorpus(self, corpus, name=None, description=None):
+        """Update corpus
+
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID
+
+        Returns
+        -------
+        corpus : dict
+            Updated corpus.
+
+        """
+        data = {}
+
+        if name:
+            data['name'] = name
+
+        if description:
+            data['description'] = description
+
+        return self._corpus(corpus).put(data=data)
+
+    def deleteCorpus(self, corpus):
+        """Delete corpus
+
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID
+        """
+        return self._corpus(corpus).delete()
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # MEDIA
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def getMedia(self, medium=None, corpus=None, name=None, returns_id=False):
+        """Get media
+
+        Parameters
+        ----------
+        medium : str, optional
+            Medium ID.
+        corpus : str, optional
+            Corpus ID. Get media for this corpus.
+        name : str, optional
+            Get medium by name.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        media : dict or list
+            Selected medium or list of media in corpus.
+        """
+
+        params = {'name': name} if name else None
+
+        if corpus:
+            result = self._corpus(corpus).media.get(params=params)
         else:
-            params = {'name': name, 'url': url, 'description': description}
-        return self._post('corpus/' + id_corpus + '/media', params)
+            result = self._media(medium).get(params=params)
 
-    def create_corpus_layer(self, id_corpus, name, description, fragment_type,
-                            data_type, annotations=[]):
-        params = {'name': name, 'description': description,
-                  'fragment_type': fragment_type, 'data_type': data_type,
-                  'annotations': annotations}
-        return self._post('corpus/' + id_corpus + '/layer', params)
+        return self._id(result) if returns_id else result
 
-    def get_corpus_media(self, id_corpus):
-        return self._get('corpus/' + id_corpus + '/media')
+    def createMedium(self, corpus, name, url=None, description=None,
+                     returns_id=False):
+        """Add new medium to corpus
 
-    def get_corpus_media_id(self, id_corpus, name):
-        return {i['name']: i['_id']
-                for i in self._get_corpus_media(id_corpus)}[name]
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID.
+        name : str
+            Media name.
+        description : object, optional
+            Media description.  Must be JSON-serializable.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
 
-    def get_corpus_layer(self, id_corpus):
-        return self._get('corpus/' + id_corpus + '/layer')
+        Returns
+        -------
+        medium : dict
+            Newly created medium.
+        """
+        medium = {'name': name,
+                  'url': url if url else '',
+                  'description': description if description else {}}
 
-    def get_corpus_layer_id(self, id_corpus, name):
-        return {i['name']: i['_id']
-                for i in self._get_corpus_layer(id_corpus)}[name]
+        result = self._corpus(corpus).media.post(data=medium)
+        return self._id(result) if returns_id else result
 
-    def get_corpus_ACL(self, id_corpus):
-        return self._get('corpus/' + id_corpus + '/ACL')
+    def createMedia(self, corpus, media, returns_id=False):
+        """Add several media to corpus
 
-    def update_corpus_user(self, id_corpus, id_user, right):
-        params = {'right': right}
-        return self._put('corpus/' + id_corpus + '/user/' + id_user, params)
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID.
+        media : list
+            List of media.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
 
-    def update_corpus_group(self, id_corpus, id_group, right):
-        params = {'right': right}
-        return self._put('corpus/' + id_corpus + '/group/' + id_group, params)
+        Returns
+        -------
+        media : list
+            List of new media.
+        """
+        result = self._corpus(corpus).media.post(data=media)
+        return self._id(result) if returns_id else result
 
-    def delete_corpus_user(self, id_corpus, id_user):
-        return self._delete('corpus/' + id_corpus + '/user/' + id_user)
-    # alias
-    remove_corpus_user = delete_corpus_user
+    def updateMedium(self, medium, name=None, url=None, description=None):
+        """Update existing medium
 
-    def delete_corpus_group(self, id_corpus, id_group):
-        return self._delete('corpus/' + id_corpus + '/group/' + id_group)
-    # alias
-    remove_corpus_group = delete_corpus_group
+        Parameters
+        ----------
+        medium : str
+            Medium ID
+        name : str, optional
+        url : str, optional
+        description : object, optional
+            Must be JSON-serializable.
 
-    # media #
+        Returns
+        -------
+        medium : dict
+            Updated medium.
+        """
+        data = {}
 
-    def get_media(self, id_media=None):
-        if id_media is None:
-            return self._get('media')
-        else:
-            return self._get('media/' + id_media)
-
-    def update_media(self, id_media, name=None, url=None, description=None):
-        params = {}
         if name is not None:
-            params['name'] = name
+            data['name'] = name
+
         if url is not None:
-            params['url'] = url
+            data['url'] = url
+
         if description is not None:
-            params['description'] = description
-        return self._put('media/' + id_media, params)
+            data['description'] = description
 
-    def delete_media(self, id_media):
-        return self._delete('media/' + id_media)
+        return self._media(medium).put(data=data)
 
-    def get_media_video(self, id_media):
-        return self._get('media/' + id_media + '/video')
+    def deleteMedium(self, medium):
+        """Delete existing medium
 
-    def get_media_webm(self, id_media):
-        return self._get('media/' + id_media + '/webm')
+        Parameters
+        ----------
+        medium : str
+            Medium ID
+        """
+        return self._media(medium).delete()
 
-    def get_media_mp4(self, id_media):
-        return self._get('media/' + id_media + '/mp4')
+    def streamMedium(self, medium, format=None):
+        """Stream medium
 
-    def get_media_ogv(self, id_media):
-        return self._get('media/' + id_media + '/ogv')
+        Parameters
+        ----------
+        medium : str
+            Medium ID
+        format : {'webm', 'mp4', 'ogv', 'mp3', 'wav'}, optional
+            Streaming format.
+        """
 
-    # layer #
-    def get_layer(self, id_layer=None):
-        if id_layer is None:
-            return self._get('layer')
+        if format is None:
+            format = 'video'
+
+        return self._media(medium).get(format)
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # LAYERS
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def getLayers(self, layer=None, corpus=None, name=None, returns_id=False):
+        """Get layers
+
+        Parameters
+        ----------
+        layer : str, optional
+            Layer ID.
+        corpus : str, optional
+            Corpus ID. Get layers for this corpus.
+        name : str, optional
+            Get layer by name.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        layers : dict or list
+            Selected layer or list of layers in corpus.
+        """
+
+        params = {'name': name} if name else None
+
+        if corpus:
+            result = self._corpus(corpus).layer.get(params=params)
         else:
-            return self._get('layer/' + id_layer)
+            result = self._layer(layer).get(params=params)
 
-    def update_layer(self, id_layer, name=None, description=None,
-                     fragment_type=None, data_type=None):
-        params = {}
+        return self._id(result) if returns_id else result
+
+    def createLayer(self, corpus,
+                    name, description=None,
+                    fragment_type=None, data_type=None,
+                    annotations=None, returns_id=False):
+        """Add new layer to corpus
+
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID.
+        name : str
+            Layer name.
+        description : object, optional
+            Layer description.  Must be JSON-serializable.
+        fragment_type : object, optional
+            Layer fragment type.  Must be JSON-serializable.
+        data_type : object, optional
+            Layer data type.  Must be JSON-serializable.
+        annotations : list, optional
+            List of annotations.
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        layer : dict
+            Newly created layer.
+        """
+        layer = {'name': name,
+                 'fragment_type': fragment_type if fragment_type else {},
+                 'data_type': data_type if data_type else {},
+                 'description': description if description else {},
+                 'annotations': annotations if annotations else []}
+
+        result = self._corpus(corpus).layer.post(data=layer)
+
+        return self._id(result) if returns_id else result
+
+    def updateLayer(self, layer,
+                    name=None, description=None,
+                    fragment_type=None, data_type=None):
+        """Update existing layer
+
+        Parameters
+        ----------
+        layer : str
+            Layer ID
+        name : str, optional
+        description : object, optional
+            Must be JSON-serializable.
+        fragment_type : str, optional
+        data_type : str, optional
+
+        Returns
+        -------
+        layer : dict
+            Updated layer.
+        """
+        data = {}
+
         if name is not None:
-            params['name'] = name
+            data['name'] = name
+
         if description is not None:
-            params['description'] = description
+            data['description'] = description
+
         if fragment_type is not None:
-            params['fragment_type'] = fragment_type
+            data['fragment_type'] = fragment_type
+
         if data_type is not None:
-            params['data_type'] = data_type
-        return self._put('layer/' + id_layer, params)
+            data['data_type'] = data_type
 
-    def delete_layer(self, id_layer):
-        return self._delete('layer/' + id_layer)
+        return self._layer(layer).put(data=data)
 
-    def create_layer_annotation(self, id_layer, annotation_list=None,
-                                id_media=None, fragment=None, data=None):
-        if annotation_list is not None:
-            params = annotation_list
+    def deleteLayer(self, layer):
+        """Delete layer
+
+        Parameters
+        ----------
+        layer : str
+            Layer ID
+        """
+        return self._layer(layer).delete()
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ANNOTATIONS
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def getAnnotations(self, annotation=None, layer=None, media=None,
+                       returns_id=False):
+        """Get annotation(s)
+
+        Parameters
+        ----------
+        annotation : str, optional
+            Annotation ID
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        annotations : dict or list
+            Annotation or list of annotations.
+
+        """
+
+        if annotation:
+            result = self._annotation(annotation).get()
+
+        elif layer:
+            params = {'media': media} if media else None
+            result = self._layer(layer).annotation.get(params=params)
+
         else:
-            params = {'id_media': id_media, 'fragment': fragment, 'data': data}
-        return self._post('layer/' + id_layer + '/annotation', params)
+            # admin user only
+            result = self._annotation(annotation).get()
 
-    def get_layer_annotation(self, id_layer, media=None):
-        if media is None:
-            return self._get('layer/' + id_layer + '/annotation')
-        else:
-            return self._get('layer/' + id_layer + '/annotation?media=' + media)
+        return self._id(result) if returns_id else result
 
-    def get_layer_ACL(self, id_layer):
-        return self._get('layer/' + id_layer + '/ACL')
+    def createAnnotation(self, layer, media=None, fragment=None, data=None,
+                         returns_id=False):
+        """
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+        """
+        annotation = {'id_media': media,
+                      'fragment': fragment if fragment else {},
+                      'data': data if data else {}}
 
-    def update_layer_user(self, id_layer, id_user, right):
-        params = {'right': right}
-        return self._put('layer/' + id_layer + '/user/' + id_user, params)
+        result = self._layer(layer).annotation.post(data=annotation)
 
-    def update_layer_group(self, id_layer, id_group, right):
-        params = {'right': right}
-        return self._put('layer/' + id_layer + '/group/' + id_group, params)
+        return self._id(result) if returns_id else result
 
-    def delete_layer_user(self, id_layer, id_user):
-        return self._delete('layer/' + id_layer + '/user/' + id_user)
+    def createAnnotations(self, layer, annotations, returns_id=False):
+        """
+                returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+        """
+        result = self._layer(layer).annotation.post(data=annotations)
+        return self._id(result) if returns_id else result
 
-    def delete_layer_group(self, id_layer, id_group):
-        return self._delete('layer/' + id_layer + '/group/' + id_group)
+    def updateAnnotation(self, annotation, fragment=None, data=None):
+        """Update existing annotation
 
-    # annotation #
+        Parameters
+        ----------
+        annotation : str
+            Annotation ID
+        fragment, data : object, optional
 
-    def get_annotation(self, id_annotation=None):
-        if id_annotation is None:
-            return self._get('annotation')
-        else:
-            return self._get('annotation/' + id_annotation)
+        Returns
+        -------
+        annotation : dict
+            Updated annotation.
+        """
+        data = {}
 
-    def update_annotation(self, id_annotation, fragment=None, data=None):
-        params = {}
         if fragment is not None:
-            params['fragment'] = fragment
+            data['fragment'] = fragment
+
         if data is not None:
-            params['data'] = data
-        return self._put('annotation/' + id_annotation, params)
+            data['data'] = data
 
-    def delete_annotation(self, id_annotation):
-        return self._delete('annotation/' + id_annotation)
+        return self._annotation(annotation).put(data=data)
 
-    # queue #
+    def deleteAnnotation(self, annotation):
+        """Delete existing annotation
 
-    def create_queue(self, name, description=''):
-        params = {'name': name, 'description': description}
-        return self._post('queue', params)
+        Parameters
+        ----------
+        annotation : str
+            Annotation ID
+        """
+        return self._annotation(annotation).delete()
 
-    def get_queue(self, id_queue=None):
-        if id_queue is None:
-            return self._get('queue')
-        else:
-            return self._get('queue/' + id_queue)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # RIGHTS
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def update_queue(self, id_queue, name=None, description=None, list=None):
-        params = {}
+    # on a corpus
+
+    def getCorpusRights(self, corpus):
+        """Get rights on existing corpus
+
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID
+
+        Returns
+        -------
+        rights : dict
+            Rights on corpus.
+        """
+        return self._corpus(corpus).ACL.get()
+
+    def setCorpusRights(self, corpus, right, user=None, group=None):
+        """Update rights on a corpus
+
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID
+        user : str, optional
+            User ID
+        group : str, optional
+            Group ID
+        right : {'O', 'W', 'R'}
+            Owner, writer or reader.
+
+        Returns
+        -------
+        rights : dict
+            Updated rights on the corpus.
+
+        """
+        if user is None and group is None:
+            raise ValueError('')
+
+        data = {'right': right}
+
+        if user:
+            self._corpus(corpus).user(user).put(data=data)
+
+        if group:
+            self._corpus(corpus).group(group).put(data=data)
+
+        return self.getCorpusRights(corpus)
+
+    def removeCorpusRights(self, corpus, user=None, group=None):
+        """Remove rights on a corpus
+
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID
+        user : str, optional
+            User ID
+        group : str, optional
+            Group ID
+        right : {'O', 'W', 'R'}
+            Owner, writer or reader.
+
+        Returns
+        -------
+        rights : dict
+            Updated rights on the corpus.
+        """
+
+        if user is None and group is None:
+            raise ValueError('')
+
+        if user:
+            self._corpus(corpus).user(user).delete()
+
+        if group:
+            self._corpus(corpus).group(group).delete()
+
+        return self.getCorpusRights(corpus)
+
+    # on a layer
+
+    def getLayerRights(self, layer):
+        """Get rights on existing layer
+
+        Parameters
+        ----------
+        layer : str
+            Corpus ID
+
+        Returns
+        -------
+        rights : dict
+            Rights on layer.
+        """
+        return self._layer(layer).ACL.get()
+
+    def setLayerRights(self, layer, right, user=None, group=None):
+        """Update rights on a layer
+
+        Parameters
+        ----------
+        layer : str
+            Layer ID
+        user : str, optional
+            User ID
+        group : str, optional
+            Group ID
+        right : {'O', 'W', 'R'}
+            Owner, writer or reader.
+
+        Returns
+        -------
+        rights : dict
+            Updated rights on the layer.
+
+        """
+        if user is None and group is None:
+            raise ValueError('')
+
+        data = {'right': right}
+
+        if user:
+            self._layer(layer).user(user).put(data=data)
+
+        if group:
+            self._layer(layer).group(group).put(data=data)
+
+        return self.getLayerRights(layer)
+
+    def removeLayerRights(self, layer, user=None, group=None):
+        """Remove rights on a layer
+
+        Parameters
+        ----------
+        layer : str
+            Layer ID
+        user : str, optional
+            User ID
+        group : str, optional
+            Group ID
+        right : {'O', 'W', 'R'}
+            Owner, writer or reader.
+
+        Returns
+        -------
+        rights : dict
+            Updated rights on the layer.
+        """
+
+        if user is None and group is None:
+            raise ValueError('')
+
+        if user:
+            self._layer(layer).user(user).delete()
+
+        if group:
+            self._layer(layer).group(group).delete()
+
+        return self.getLayerRights(layer)
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # QUEUES
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def getQueues(self, queue=None, returns_id=False):
+        """Get queues
+
+        Parameters
+        ----------
+        queue : str, optional
+            Queue ID
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        queues : list or dict
+        """
+        result = self._queue(queue).get()
+        return self._id(result) if returns_id else result
+
+    def createQueue(self, name, description=None, returns_id=False):
+        """Create queue
+
+        Parameters
+        ----------
+        id_queue : str
+            Queue ID
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        queue : dict
+            Newly created queue.
+        """
+        data = {'name': name, 'description': description}
+        result = self._queue.post(data=data)
+        return self._id(result) if returns_id else result
+
+    def updateQueue(self, queue, name=None, description=None, elements=None):
+        """Update queue
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID
+
+        Returns
+        -------
+        queue : dict
+            Updated queue.
+        """
+        data = {}
+
         if name is not None:
-            params['name'] = name
+            data['name'] = name
+
         if description is not None:
-            params['description'] = description
-        if list is not None:
-            params['list'] = list
-        return self._put('queue/' + id_queue, params)
+            data['description'] = description
 
-    def update_queue_next(self, id_queue, list):
-        params = {'list': list}
-        return self._put('queue/' + id_queue + '/next', params)
+        if elements is not None:
+            data['list'] = elements
 
-    def get_queue_next(self, id_queue):
-        return self._get('queue/' + id_queue + '/next')
+        return self._queue(queue).put(data=data)
 
-    def delete_queue(self, id_queue):
-        return self._delete('queue/' + id_queue)
+    def pushToQueue(self, queue, elements):
+        """Push elements to queue
 
-    # tools #
+        Parameters
+        ----------
+        queue : str
+            Queue ID
+        elements : list
+            List of elements.
 
-    def get_date(self):
-        return self._get('date')
+        Returns
+        -------
+        queue : dict
+            Updated queue.
+        """
+        data = {'list': elements}
+
+        return self._queue(queue).next.put(data=data)
+
+    def popFromQueue(self, queue):
+        """Pop a queue
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID
+
+        Returns
+        -------
+        element : object
+            Popped element from queue.
+        """
+        return self._queue(queue).next.get()
+
+    def deleteQueue(self, queue):
+        """Delete existing queue
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID
+        """
+        return self._queue(queue).delete()
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # UTILS
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    def getDate(self):
+        return self._api.date.get()
