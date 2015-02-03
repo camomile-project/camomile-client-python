@@ -44,9 +44,7 @@ setup(
     url='http://github.com/camomile-project',
     packages=find_packages(),
     install_requires=[
-        'six >= 1.8.0',
-        'requests >= 2.5.0',
-        'simplejson >= 3.6.5'
+        'tortilla >= 0.4',
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
