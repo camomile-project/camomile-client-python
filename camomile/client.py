@@ -64,7 +64,7 @@ class Camomile(object):
 
         # internally rely on tortilla generic API wrapper
         # see http://github.com/redodo/tortilla
-        self._api = tortilla.wrap(url, format='json', delay=delay)
+        self._api = tortilla.wrap(url, format='json')
 
         # log in if `username` is provided
         if username:
@@ -163,9 +163,10 @@ class Camomile(object):
         """Logout"""
         return self._api.logout.post()
 
-    def me(self):
+    def me(self, returns_id=False):
         """Get information about logged in user"""
-        return self._api.me.get()
+        result = self._api.me.get()
+        return self._id(result) if returns_id else result
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # USERS
@@ -220,7 +221,7 @@ class Camomile(object):
 
         data = {'username': username,
                 'password': password,
-                'description': description,
+                'description': description if description else {},
                 'role': role}
 
         result = self._user().post(data=data)
@@ -1034,8 +1035,8 @@ class Camomile(object):
 
         return self._queue(queue).put(data=data)
 
-    def pushToQueue(self, queue, elements):
-        """Push elements to queue
+    def enqueue(self, queue, elements):
+        """Enqueue elements
 
         Parameters
         ----------
@@ -1053,8 +1054,8 @@ class Camomile(object):
 
         return self._queue(queue).next.put(data=data)
 
-    def popFromQueue(self, queue):
-        """Pop a queue
+    def dequeue(self, queue):
+        """Dequeue element
 
         Parameters
         ----------
