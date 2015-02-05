@@ -296,25 +296,38 @@ class Camomile(object):
     # GROUPS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def getGroups(self, group=None, name=None, returns_id=False):
+    def getGroup(self, group):
+        """Get group by ID
+
+        Parameters
+        ----------
+        group : str
+            Group ID.
+
+        Returns
+        -------
+        group : dict
+
+        """
+        return self._group(group).get()
+
+    def getGroups(self, name=None, returns_id=False):
         """Get group(s)
 
         Parameters
         ----------
-        group : str, optional
-            Group ID.  Defaults to all groups.
         name : str, optional
-            Get group by name.
+            Filter groups by name.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
         Returns
         -------
-        groups : dict or list
-            Group
+        groups : list
+            List of groups
         """
         params = {'name': name} if name else None
-        result = self._group(group).get(params=params)
+        result = self._group().get(params=params)
         return self._id(result) if returns_id else result
 
     def createGroup(self, name, description=None, returns_id=False):
