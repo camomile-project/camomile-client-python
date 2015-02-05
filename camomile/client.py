@@ -763,34 +763,57 @@ class Camomile(object):
     # ANNOTATIONS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def getAnnotations(self, annotation=None, layer=None, media=None,
-                       returns_id=False):
-        """Get annotation(s)
+    def getAnnotation(self, annotation, history=False):
+        """Get annotation by ID
 
         Parameters
         ----------
-        annotation : str, optional
-            Annotation ID
+        annotation : str
+            Annotation ID.
+        history : boolean, optional
+            Whether to return history.  Defaults to False.
+
+        Returns
+        -------
+        annotation : dict
+
+        """
+        params = {'history': 'on' if history else 'off'}
+        return self._annotation(annotation).get(params=params)
+
+    def getAnnotations(self, layer=None, medium=None,
+                       history=False, returns_id=False):
+        """Get annotations
+
+        Parameters
+        ----------
+        layer : str, optional
+            Filter annotations by layer.
+        medium : str, optional
+            Filter annotations by medium.
+        history : boolean, optional
+            Whether to return history.  Defaults to False.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
         Returns
         -------
-        annotations : dict or list
-            Annotation or list of annotations.
+        annotations : list
+            List of annotations.
 
         """
 
-        if annotation:
-            result = self._annotation(annotation).get()
+        params = {}
+        if medium:
+            params['media'] = medium
+        params['history'] = 'on' if history else 'off'
 
-        elif layer:
-            params = {'media': media} if media else None
+        if layer:
             result = self._layer(layer).annotation.get(params=params)
 
         else:
             # admin user only
-            result = self._annotation(annotation).get()
+            result = self._annotation().get(params=params)
 
         return self._id(result) if returns_id else result
 
