@@ -630,24 +630,40 @@ class Camomile(object):
     # LAYERS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def getLayers(self, layer=None, corpus=None, name=None, returns_id=False):
+    def getLayer(self, layer, history=False):
+        """Get layer by ID
+
+        Parameters
+        ----------
+        layer : str
+            Layer ID.
+        history : boolean, optional
+            Whether to return history.  Defaults to False.
+
+        Returns
+        -------
+        layer : dict
+
+        """
+        params = {'history': 'on' if history else 'off'}
+        return self._layer(layer).get(params=params)
+
+    def getLayers(self, corpus=None, name=None, returns_id=False):
         """Get layers
 
         Parameters
         ----------
-        layer : str, optional
-            Layer ID.
         corpus : str, optional
             Corpus ID. Get layers for this corpus.
         name : str, optional
-            Get layer by name.
+            Filter layer by name.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
         Returns
         -------
-        layers : dict or list
-            Selected layer or list of layers in corpus.
+        layers : list
+            List of layers in corpus.
         """
 
         params = {'name': name} if name else None
@@ -655,7 +671,7 @@ class Camomile(object):
         if corpus:
             result = self._corpus(corpus).layer.get(params=params)
         else:
-            result = self._layer(layer).get(params=params)
+            result = self._layer().get(params=params)
 
         return self._id(result) if returns_id else result
 
