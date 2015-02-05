@@ -375,14 +375,29 @@ class Camomile(object):
     # CORPORA
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def getCorpora(self, corpus=None, name=None, history=False,
-                   returns_id=False):
+    def getCorpus(self, corpus, history=False):
+        """Get corpus by ID
+
+        Parameters
+        ----------
+        corpus : str
+            Corpus ID.
+        history : boolean, optional
+            Whether to return history.  Defaults to False.
+
+        Returns
+        -------
+        corpus : dict
+
+        """
+        params = {'history': 'on' if history else 'off'}
+        return self._corpus(corpus).get(params=params)
+
+    def getCorpora(self, name=None, history=False, returns_id=False):
         """Get corpora
 
         Parameters
         ----------
-        corpus : str, optional
-            Get corpus by ID.
         name : str, optional
             Get corpus by name.
         history : boolean, optional
@@ -392,15 +407,15 @@ class Camomile(object):
 
         Returns
         -------
-        corpus : dict or list
-            Selected corpus or list of corpora.
+        corpora : list
+            List of corpora.
 
         """
         params = {'history': 'on' if history else 'off'}
         if name:
             params['name'] = name
 
-        result = self._corpus(corpus).get(params=params)
+        result = self._corpus().get(params=params)
         return self._id(result) if returns_id else result
 
     def createCorpus(self, name, description=None, returns_id=False):
