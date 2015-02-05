@@ -1043,13 +1043,26 @@ class Camomile(object):
     # QUEUES
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def getQueues(self, queue=None, returns_id=False):
+    def getQueue(self, queue):
+        """Get queue by ID
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID.
+
+        Returns
+        -------
+        queue : dict
+
+        """
+        return self._queue(queue).get()
+
+    def getQueues(self, returns_id=False):
         """Get queues
 
         Parameters
         ----------
-        queue : str, optional
-            Queue ID
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
@@ -1057,7 +1070,7 @@ class Camomile(object):
         -------
         queues : list or dict
         """
-        result = self._queue(queue).get()
+        result = self._queue().get()
         return self._id(result) if returns_id else result
 
     def createQueue(self, name, description=None, returns_id=False):
