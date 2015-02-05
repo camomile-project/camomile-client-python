@@ -172,29 +172,38 @@ class Camomile(object):
     # USERS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def getUsers(self, user=None, username=None, returns_id=False):
+    def getUser(self, user):
+        """Get user by ID
+
+        Parameters
+        ----------
+        user : str
+            User ID.
+
+        Returns
+        -------
+        user : dict
+
+        """
+        return self._user(user).get()
+
+    def getUsers(self, username=None, returns_id=False):
         """Get user(s)
 
         Parameters
         ----------
-        user : str, optional
-            Get user with id `user`.  Defaults to all users.
+        username : str, optional
+            Filter by username.
         returns_id : boolean, optional.
             Returns IDs rather than user dictionaries.
 
         Returns
         -------
-        users : dict or list
-            User dictionary
-
-        Example
-        -------
-        >>> client.get_user(user='54eecd4529')
-        >>> client.get_user()
-        >>> client.get_user(username='johndoe')
+        users : list
+            List of users
         """
         params = {'username': username} if username else None
-        result = self._user(user).get(params=params)
+        result = self._user().get(params=params)
         return self._id(result) if returns_id else result
 
     def createUser(self,
