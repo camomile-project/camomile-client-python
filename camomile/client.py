@@ -478,24 +478,40 @@ class Camomile(object):
     # MEDIA
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    def getMedia(self, medium=None, corpus=None, name=None, returns_id=False):
+    def getMedium(self, medium, history=False):
+        """Get medium by ID
+
+        Parameters
+        ----------
+        medium : str
+            Medium ID.
+        history : boolean, optional
+            Whether to return history.  Defaults to False.
+
+        Returns
+        -------
+        medium : dict
+
+        """
+        params = {'history': 'on' if history else 'off'}
+        return self._media(medium).get(params=params)
+
+    def getMedia(self, corpus=None, name=None, returns_id=False):
         """Get media
 
         Parameters
         ----------
-        medium : str, optional
-            Medium ID.
         corpus : str, optional
             Corpus ID. Get media for this corpus.
         name : str, optional
-            Get medium by name.
+            Filter medium by name.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
         Returns
         -------
-        media : dict or list
-            Selected medium or list of media in corpus.
+        media : list
+            List of media
         """
 
         params = {'name': name} if name else None
@@ -503,7 +519,7 @@ class Camomile(object):
         if corpus:
             result = self._corpus(corpus).media.get(params=params)
         else:
-            result = self._media(medium).get(params=params)
+            result = self._media().get(params=params)
 
         return self._id(result) if returns_id else result
 
