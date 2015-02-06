@@ -349,7 +349,7 @@ class Camomile(object):
         data = {'name': name,
                 'description': description if description else {}}
 
-        result = self._group.post(data=data)
+        result = self._group().post(data=data)
         return self._id(result) if returns_id else result
 
     def updateGroup(self, group, description=None):
@@ -451,7 +451,7 @@ class Camomile(object):
         """
         data = {'name': name,
                 'description': description if description else {}}
-        result = self._corpus.post(data=data)
+        result = self._corpus().post(data=data)
         return self._id(result) if returns_id else result
 
     def updateCorpus(self, corpus, name=None, description=None):
@@ -1103,7 +1103,7 @@ class Camomile(object):
             Newly created queue.
         """
         data = {'name': name, 'description': description}
-        result = self._queue.post(data=data)
+        result = self._queue().post(data=data)
         return self._id(result) if returns_id else result
 
     def updateQueue(self, queue, name=None, description=None, elements=None):
