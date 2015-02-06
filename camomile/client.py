@@ -108,31 +108,31 @@ class Camomile(object):
             group = group(id_group)
         return group
 
-    def _corpus(self, id_corpus):
+    def _corpus(self, id_corpus=None):
         corpus = self._api.corpus
         if id_corpus:
             corpus = corpus(id_corpus)
         return corpus
 
-    def _media(self, medium):
+    def _media(self, medium=None):
         media = self._api.media
         if medium:
             media = media(medium)
         return media
 
-    def _layer(self, id_layer):
+    def _layer(self, id_layer=None):
         layer = self._api.layer
         if id_layer:
             layer = layer(id_layer)
         return layer
 
-    def _annotation(self, id_annotation):
+    def _annotation(self, id_annotation=None):
         annotation = self._api.annotation
         if id_annotation:
             annotation = annotation(id_annotation)
         return annotation
 
-    def _queue(self, id_queue):
+    def _queue(self, id_queue=None):
         queue = self._api.queue
         if id_queue:
             queue = queue(id_queue)
