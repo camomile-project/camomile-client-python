@@ -84,15 +84,6 @@ class Camomile(object):
     def __exit__(self, type, value, traceback):
         self.logout()
 
-    # def _check_error(self, resp):
-    #     if 400 <= resp.status_code < 600:
-    #         try:
-    #             msg = '%s Error: %s - %s' % (
-    #                 resp.status_code, resp.reason, resp.json()['message'])
-    #         except:
-    #             msg = '%s Error: %s' % (resp.status_code, resp.reason)
-    #         raise requests.exceptions.HTTPError(msg, response=resp)
-
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # HELPER FUNCTIONS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
