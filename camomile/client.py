@@ -59,12 +59,13 @@ class Camomile(object):
     >>> client.logout()
     """
 
-    def __init__(self, url, username=None, password=None, delay=None):
+    def __init__(self, url, username=None, password=None, delay=0.,
+                 debug=False):
         super(Camomile, self).__init__()
 
         # internally rely on tortilla generic API wrapper
         # see http://github.com/redodo/tortilla
-        self._api = tortilla.wrap(url, format='json')
+        self._api = tortilla.wrap(url, format='json', delay=delay, debug=debug)
 
         # log in if `username` is provided
         if username:
