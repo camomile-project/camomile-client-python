@@ -4,7 +4,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2014 Hervé BREDIN (http://herve.niderb.fr/)
+# Copyright (c) 2014-2015 CNRS
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,9 @@
 # SOFTWARE.
 #
 
+# AUTHORS
+# Hervé BREDIN -- http://herve.niderb.fr/
+
 import versioneer
 versioneer.versionfile_source = 'camomile/_version.py'
 versioneer.versionfile_build = 'camomile/_version.py'
@@ -44,7 +47,7 @@ setup(
     url='http://github.com/camomile-project',
     packages=find_packages(),
     install_requires=[
-        'tortilla >= 0.4',
+        'tortilla',
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
