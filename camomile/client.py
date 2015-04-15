@@ -106,11 +106,11 @@ class Camomile(object):
             corpus = corpus(id_corpus)
         return corpus
 
-    def _media(self, medium=None):
-        media = self._api.media
-        if medium:
-            media = media(medium)
-        return media
+    def _medium(self, id_medium=None):
+        medium = self._api.medium
+        if id_medium:
+            medium = medium(id_medium)
+        return medium
 
     def _layer(self, id_layer=None):
         layer = self._api.layer
@@ -508,7 +508,7 @@ class Camomile(object):
 
         """
         params = {'history': 'on' if history else 'off'}
-        return self._media(medium).get(params=params)
+        return self._medium(medium).get(params=params)
 
     def getMedia(self, corpus=None, name=None, returns_id=False):
         """Get media
@@ -531,9 +531,9 @@ class Camomile(object):
         params = {'name': name} if name else None
 
         if corpus:
-            result = self._corpus(corpus).media.get(params=params)
+            result = self._corpus(corpus).medium.get(params=params)
         else:
-            result = self._media().get(params=params)
+            result = self._medium().get(params=params)
 
         return self._id(result) if returns_id else result
 
@@ -546,9 +546,9 @@ class Camomile(object):
         corpus : str
             Corpus ID.
         name : str
-            Media name.
+            Medium name.
         description : object, optional
-            Media description.  Must be JSON-serializable.
+            Medium description.  Must be JSON-serializable.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
@@ -561,7 +561,7 @@ class Camomile(object):
                   'url': url if url else '',
                   'description': description if description else {}}
 
-        result = self._corpus(corpus).media.post(data=medium)
+        result = self._corpus(corpus).medium.post(data=medium)
         return self._id(result) if returns_id else result
 
     def createMedia(self, corpus, media, returns_id=False):
@@ -581,7 +581,7 @@ class Camomile(object):
         media : list
             List of new media.
         """
-        result = self._corpus(corpus).media.post(data=media)
+        result = self._corpus(corpus).medium.post(data=media)
         return self._id(result) if returns_id else result
 
     def updateMedium(self, medium, name=None, url=None, description=None):
@@ -612,7 +612,7 @@ class Camomile(object):
         if description is not None:
             data['description'] = description
 
-        return self._media(medium).put(data=data)
+        return self._medium(medium).put(data=data)
 
     def deleteMedium(self, medium):
         """Delete existing medium
@@ -622,7 +622,7 @@ class Camomile(object):
         medium : str
             Medium ID
         """
-        return self._media(medium).delete()
+        return self._medium(medium).delete()
 
     def streamMedium(self, medium, format=None):
         """Stream medium
@@ -638,7 +638,7 @@ class Camomile(object):
         if format is None:
             format = 'video'
 
-        return self._media(medium).get(format)
+        return self._medium(medium).get(format)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # LAYERS
@@ -819,7 +819,7 @@ class Camomile(object):
 
         params = {}
         if medium:
-            params['media'] = medium
+            params['id_medium'] = medium
         params['history'] = 'on' if history else 'off'
 
         if layer:
@@ -831,13 +831,13 @@ class Camomile(object):
 
         return self._id(result) if returns_id else result
 
-    def createAnnotation(self, layer, media=None, fragment=None, data=None,
+    def createAnnotation(self, layer, medium=None, fragment=None, data=None,
                          returns_id=False):
         """
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
         """
-        annotation = {'id_media': media,
+        annotation = {'id_medium': medium,
                       'fragment': fragment if fragment else {},
                       'data': data if data else {}}
 
