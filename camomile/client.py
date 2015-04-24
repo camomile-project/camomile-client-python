@@ -59,6 +59,10 @@ class Camomile(object):
     >>> client.logout()
     """
 
+    ADMIN = 3
+    WRITE = 2
+    READ = 1
+
     def __init__(self, url, username=None, password=None, delay=0.,
                  debug=False):
         super(Camomile, self).__init__()
