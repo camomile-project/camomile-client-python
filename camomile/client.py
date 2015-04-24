@@ -1150,9 +1150,11 @@ class Camomile(object):
         queue : dict
             Updated queue.
         """
-        data = {'list': elements}
 
-        return self._queue(queue).next.put(data=data)
+        if not isinstance(elements, list):
+            elements = [elements]
+
+        return self._queue(queue).next.put(data=elements)
 
     def dequeue(self, queue):
         """Dequeue element
