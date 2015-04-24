@@ -408,7 +408,7 @@ class Camomile(object):
         corpus : dict
 
         """
-        params = {'history': 'on' if history else 'off'}
+        params = {'history': 'on'} if history else {}
         return self._corpus(corpus).get(params=params)
 
     def getCorpora(self, name=None, history=False, returns_id=False):
@@ -429,7 +429,7 @@ class Camomile(object):
             List of corpora.
 
         """
-        params = {'history': 'on' if history else 'off'}
+        params = {'history': 'on'} if history else {}
         if name:
             params['name'] = name
 
@@ -511,7 +511,7 @@ class Camomile(object):
         medium : dict
 
         """
-        params = {'history': 'on' if history else 'off'}
+        params = {'history': 'on'} if history else {}
         return self._medium(medium).get(params=params)
 
     def getMedia(self, corpus=None, name=None, returns_id=False):
@@ -663,7 +663,7 @@ class Camomile(object):
         layer : dict
 
         """
-        params = {'history': 'on' if history else 'off'}
+        params = {'history': 'on'} if history else {}
         return self._layer(layer).get(params=params)
 
     def getLayers(self, corpus=None, name=None, returns_id=False):
@@ -796,7 +796,7 @@ class Camomile(object):
         annotation : dict
 
         """
-        params = {'history': 'on' if history else 'off'}
+        params = {'history': 'on'} if history else {}
         return self._annotation(annotation).get(params=params)
 
     def getAnnotations(self, layer=None, medium=None,
@@ -821,10 +821,9 @@ class Camomile(object):
 
         """
 
-        params = {}
+        params = {'history': 'on'} if history else {}
         if medium:
             params['id_medium'] = medium
-        params['history'] = 'on' if history else 'off'
 
         if layer:
             result = self._layer(layer).annotation.get(params=params)
