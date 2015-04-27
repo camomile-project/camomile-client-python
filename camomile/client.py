@@ -909,7 +909,7 @@ class Camomile(object):
         rights : dict
             Rights on corpus.
         """
-        return self._corpus(corpus).ACL.get()
+        return self._corpus(corpus).permissions.get()
 
     def setCorpusRights(self, corpus, right, user=None, group=None):
         """Update rights on a corpus
@@ -990,7 +990,7 @@ class Camomile(object):
         rights : dict
             Rights on layer.
         """
-        return self._layer(layer).ACL.get()
+        return self._layer(layer).permissions.get()
 
     def setLayerRights(self, layer, right, user=None, group=None):
         """Update rights on a layer
