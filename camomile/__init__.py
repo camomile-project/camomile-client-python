@@ -4,7 +4,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2014 Hervé BREDIN (http://herve.niderb.fr/)
+# Copyright (c) 2014 CNRS
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,14 @@
 # SOFTWARE.
 #
 
+# AUTHORS
+# Hervé BREDIN - http://herve.niderb.fr/
+
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
 
-from client import CamomileClient
+from client import Camomile
 
-__all__ = ['CamomileClient']
+__all__ = ['Camomile']
