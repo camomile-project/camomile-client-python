@@ -47,7 +47,7 @@ setup(
     url='http://github.com/camomile-project',
     packages=find_packages(),
     install_requires=[
-        'tortilla >= 0.4.0',
+        'tortilla >= 0.4.1',
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
