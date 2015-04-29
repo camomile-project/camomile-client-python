@@ -37,3 +37,5 @@ nosetests.xml
 
 # virtualenv
 venv
+
+test.py
