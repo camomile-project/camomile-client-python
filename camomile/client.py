@@ -164,6 +164,10 @@ class Camomile(object):
         result = self._api.me.get()
         return self._id(result) if returns_id else result
 
+    def update_password(self, new_password):
+        """Update password"""
+        return self._api.me.put(data={'password': new_password})
+
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # USERS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
