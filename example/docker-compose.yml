@@ -1,0 +1,15 @@
+db:
+  image: mongo
+  volumes:
+   - /data/db
+
+camomile:
+  image: camomile/api:0.5.2
+  links:
+   - db:mongo
+  volumes:
+   - /media
+  ports:
+   - "3000"
+  environment:
+   - ROOT_PASSWORD=password
