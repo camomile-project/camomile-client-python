@@ -4,7 +4,7 @@ db:
    - /data/db
 
 camomile:
-  image: camomile/api:0.5.2
+  image: camomile/api:0.5.4
   links:
    - db:mongo
   volumes:
