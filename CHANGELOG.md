@@ -1,3 +1,8 @@
+## Version 0.5.3 (2015-05-25)
+
+  - improve: better error reporting
+  - improve: prompt the user for a password
+
 ## Version 0.5.2 (2015-05-05)
 
   - feat: added sample scripts
