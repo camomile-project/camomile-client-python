@@ -33,6 +33,7 @@
 
 import tortilla
 import requests
+from getpass import getpass
 
 
 # Decorator catching HTTPErrors and replacing the generic error message
@@ -167,7 +168,7 @@ class Camomile(object):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     @catchCamomileError
-    def login(self, username, password):
+    def login(self, username, password=None):
         """Login
 
         Parameters
@@ -175,6 +176,10 @@ class Camomile(object):
         username, password : str
 
         """
+
+        if password is None:
+            password = getpass()
+
         data = {'username': username,
                 'password': password}
         return self._api.login.post(data=data)
@@ -191,8 +196,12 @@ class Camomile(object):
         return self._id(result) if returns_id else result
 
     @catchCamomileError
-    def update_password(self, new_password):
+    def update_password(self, new_password=None):
         """Update password"""
+
+        if new_password is None:
+            new_password = getpass('New password: ')
+
         return self._api.me.put(data={'password': new_password})
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
