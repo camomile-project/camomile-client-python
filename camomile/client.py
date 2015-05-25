@@ -184,6 +184,7 @@ class Camomile(object):
         """Logout"""
         return self._api.logout.post()
 
+    @catchCamomileError
     def me(self, returns_id=False):
         """Get information about logged in user"""
         result = self._api.me.get()
