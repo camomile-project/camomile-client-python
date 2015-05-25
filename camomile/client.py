@@ -35,6 +35,28 @@ import tortilla
 import requests
 
 
+# Decorator catching HTTPErrors and replacing the generic error message
+# with the Camomile error field found in the response data.
+def catchCamomileError(f1):
+    def f2(*args, **kwargs):
+        try:
+            return f1(*args, **kwargs)
+        except requests.exceptions.HTTPError as e:
+            error = e.response.json().get('error', None)
+            if error:
+                if e.response.status_code < 500:
+                    fmt = '%s Camomile Client Error: %s'
+                else:
+                    fmt = '%s Camomile Server Error: %s'
+                e.message = fmt % (e.response.status_code, error)
+
+            raise requests.exceptions.HTTPError(e.message, response=e.response)
+    # keep name and docstring of the initial function
+    f2.__name__ = f1.__name__
+    f2.__doc__ = f1.__doc__
+    return f2
+
+
 class Camomile(object):
     """Client for Camomile REST API
 
@@ -93,25 +115,6 @@ class Camomile(object):
     # HELPER FUNCTIONS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    # Decorator catching HTTPErrors and replacing the generic error message
-    # with the Camomile error field found in the response data.
-    def checkError(f1):
-        def f2(*args, **kwargs):
-            try:
-                return f1(*args, **kwargs)
-            except requests.exceptions.HTTPError as e:
-                if 'error' in e.response.json():
-                    if e.response.status_code < 500:
-                        fmt = '%s Camomile Client Error: %s'
-                    else:
-                        fmt = '%s Camomile Server Error: %s'
-                    e.message = fmt % (e.response.status_code, e.response.json()['error'])
-                raise requests.exceptions.HTTPError(e.message, response=e.response)
-        # keep name and docstring of the initial function
-        f2.__name__ = f1.__name__
-        f2.__doc__ = f1.__doc__
-        return f2
-
     def _user(self, id_user=None):
         user = self._api.user
         if id_user:
@@ -163,7 +166,7 @@ class Camomile(object):
     # AUTHENTICATION
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def login(self, username, password):
         """Login
 
@@ -176,7 +179,7 @@ class Camomile(object):
                 'password': password}
         return self._api.login.post(data=data)
 
-    @checkError
+    @catchCamomileError
     def logout(self):
         """Logout"""
         return self._api.logout.post()
@@ -186,7 +189,7 @@ class Camomile(object):
         result = self._api.me.get()
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def update_password(self, new_password):
         """Update password"""
         return self._api.me.put(data={'password': new_password})
@@ -195,7 +198,7 @@ class Camomile(object):
     # USERS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def getUser(self, user):
         """Get user by ID
 
@@ -211,7 +214,7 @@ class Camomile(object):
         """
         return self._user(user).get()
 
-    @checkError
+    @catchCamomileError
     def getUsers(self, username=None, returns_id=False):
         """Get user(s)
 
@@ -231,7 +234,7 @@ class Camomile(object):
         result = self._user().get(params=params)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createUser(self,
                    username, password,
                    description=None, role='user',
@@ -262,7 +265,7 @@ class Camomile(object):
         result = self._user().post(data=data)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def updateUser(self, user, password=None, description=None, role=None):
         """Update existing user
 
@@ -295,7 +298,7 @@ class Camomile(object):
 
         return self._user(user).put(data=data)
 
-    @checkError
+    @catchCamomileError
     def deleteUser(self, user):
         """Delete existing user
 
@@ -306,7 +309,7 @@ class Camomile(object):
         """
         return self._user(user).delete()
 
-    @checkError
+    @catchCamomileError
     def getUserGroups(self, user):
         """Get groups of existing user
 
@@ -325,7 +328,7 @@ class Camomile(object):
     # GROUPS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def getGroup(self, group):
         """Get group by ID
 
@@ -341,7 +344,7 @@ class Camomile(object):
         """
         return self._group(group).get()
 
-    @checkError
+    @catchCamomileError
     def getGroups(self, name=None, returns_id=False):
         """Get group(s)
 
@@ -361,7 +364,7 @@ class Camomile(object):
         result = self._group().get(params=params)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createGroup(self, name, description=None, returns_id=False):
         """Create new group
 
@@ -392,7 +395,7 @@ class Camomile(object):
         result = self._group().post(data=data)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def updateGroup(self, group, description=None):
         """Update existing group
 
@@ -410,7 +413,7 @@ class Camomile(object):
         data = {'description': description}
         return self._group(group).put(data=data)
 
-    @checkError
+    @catchCamomileError
     def deleteGroup(self, group):
         """Delete existing group
 
@@ -421,11 +424,11 @@ class Camomile(object):
         """
         return self._group(group).delete()
 
-    @checkError
+    @catchCamomileError
     def addUserToGroup(self, user, group):
         return self._group(group).user(user).put()
 
-    @checkError
+    @catchCamomileError
     def removeUserFromGroup(self, user, group):
         return self._group(group).user(user).delete()
 
@@ -433,7 +436,7 @@ class Camomile(object):
     # CORPORA
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def getCorpus(self, corpus, history=False):
         """Get corpus by ID
 
@@ -452,7 +455,7 @@ class Camomile(object):
         params = {'history': 'on'} if history else {}
         return self._corpus(corpus).get(params=params)
 
-    @checkError
+    @catchCamomileError
     def getCorpora(self, name=None, history=False, returns_id=False):
         """Get corpora
 
@@ -478,7 +481,7 @@ class Camomile(object):
         result = self._corpus().get(params=params)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createCorpus(self, name, description=None, returns_id=False):
         """Create new corpus
 
@@ -501,7 +504,7 @@ class Camomile(object):
         result = self._corpus().post(data=data)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def updateCorpus(self, corpus, name=None, description=None):
         """Update corpus
 
@@ -526,7 +529,7 @@ class Camomile(object):
 
         return self._corpus(corpus).put(data=data)
 
-    @checkError
+    @catchCamomileError
     def deleteCorpus(self, corpus):
         """Delete corpus
 
@@ -541,7 +544,7 @@ class Camomile(object):
     # MEDIA
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def getMedium(self, medium, history=False):
         """Get medium by ID
 
@@ -560,7 +563,7 @@ class Camomile(object):
         params = {'history': 'on'} if history else {}
         return self._medium(medium).get(params=params)
 
-    @checkError
+    @catchCamomileError
     def getMedia(self, corpus=None, name=None, returns_id=False):
         """Get media
 
@@ -588,7 +591,7 @@ class Camomile(object):
 
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createMedium(self, corpus, name, url=None, description=None,
                      returns_id=False):
         """Add new medium to corpus
@@ -616,7 +619,7 @@ class Camomile(object):
         result = self._corpus(corpus).medium.post(data=medium)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createMedia(self, corpus, media, returns_id=False):
         """Add several media to corpus
 
@@ -637,7 +640,7 @@ class Camomile(object):
         result = self._corpus(corpus).medium.post(data=media)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def updateMedium(self, medium, name=None, url=None, description=None):
         """Update existing medium
 
@@ -668,7 +671,7 @@ class Camomile(object):
 
         return self._medium(medium).put(data=data)
 
-    @checkError
+    @catchCamomileError
     def deleteMedium(self, medium):
         """Delete existing medium
 
@@ -679,7 +682,7 @@ class Camomile(object):
         """
         return self._medium(medium).delete()
 
-    @checkError
+    @catchCamomileError
     def streamMedium(self, medium, format=None):
         """Stream medium
 
@@ -700,7 +703,7 @@ class Camomile(object):
     # LAYERS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def getLayer(self, layer, history=False):
         """Get layer by ID
 
@@ -719,7 +722,7 @@ class Camomile(object):
         params = {'history': 'on'} if history else {}
         return self._layer(layer).get(params=params)
 
-    @checkError
+    @catchCamomileError
     def getLayers(self, corpus=None, name=None, returns_id=False):
         """Get layers
 
@@ -747,7 +750,7 @@ class Camomile(object):
 
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createLayer(self, corpus,
                     name, description=None,
                     fragment_type=None, data_type=None,
@@ -786,7 +789,7 @@ class Camomile(object):
 
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def updateLayer(self, layer,
                     name=None, description=None,
                     fragment_type=None, data_type=None):
@@ -823,7 +826,7 @@ class Camomile(object):
 
         return self._layer(layer).put(data=data)
 
-    @checkError
+    @catchCamomileError
     def deleteLayer(self, layer):
         """Delete layer
 
@@ -838,7 +841,7 @@ class Camomile(object):
     # ANNOTATIONS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def getAnnotation(self, annotation, history=False):
         """Get annotation by ID
 
@@ -857,7 +860,7 @@ class Camomile(object):
         params = {'history': 'on'} if history else {}
         return self._annotation(annotation).get(params=params)
 
-    @checkError
+    @catchCamomileError
     def getAnnotations(self, layer=None, medium=None,
                        history=False, returns_id=False):
         """Get annotations
@@ -893,7 +896,7 @@ class Camomile(object):
 
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createAnnotation(self, layer, medium=None, fragment=None, data=None,
                          returns_id=False):
         """
@@ -908,7 +911,7 @@ class Camomile(object):
 
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createAnnotations(self, layer, annotations, returns_id=False):
         """
                 returns_id : boolean, optional.
@@ -917,7 +920,7 @@ class Camomile(object):
         result = self._layer(layer).annotation.post(data=annotations)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def updateAnnotation(self, annotation, fragment=None, data=None):
         """Update existing annotation
 
@@ -942,7 +945,7 @@ class Camomile(object):
 
         return self._annotation(annotation).put(data=data)
 
-    @checkError
+    @catchCamomileError
     def deleteAnnotation(self, annotation):
         """Delete existing annotation
 
@@ -959,7 +962,7 @@ class Camomile(object):
 
     # on a corpus
 
-    @checkError
+    @catchCamomileError
     def getCorpusRights(self, corpus):
         """Get rights on existing corpus
 
@@ -975,7 +978,7 @@ class Camomile(object):
         """
         return self._corpus(corpus).permissions.get()
 
-    @checkError
+    @catchCamomileError
     def setCorpusRights(self, corpus, right, user=None, group=None):
         """Update rights on a corpus
 
@@ -1009,7 +1012,7 @@ class Camomile(object):
 
         return self.getCorpusRights(corpus)
 
-    @checkError
+    @catchCamomileError
     def removeCorpusRights(self, corpus, user=None, group=None):
         """Remove rights on a corpus
 
@@ -1043,7 +1046,7 @@ class Camomile(object):
 
     # on a layer
 
-    @checkError
+    @catchCamomileError
     def getLayerRights(self, layer):
         """Get rights on existing layer
 
@@ -1059,7 +1062,7 @@ class Camomile(object):
         """
         return self._layer(layer).permissions.get()
 
-    @checkError
+    @catchCamomileError
     def setLayerRights(self, layer, right, user=None, group=None):
         """Update rights on a layer
 
@@ -1093,7 +1096,7 @@ class Camomile(object):
 
         return self.getLayerRights(layer)
 
-    @checkError
+    @catchCamomileError
     def removeLayerRights(self, layer, user=None, group=None):
         """Remove rights on a layer
 
@@ -1129,7 +1132,7 @@ class Camomile(object):
     # QUEUES
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def getQueue(self, queue):
         """Get queue by ID
 
@@ -1145,7 +1148,7 @@ class Camomile(object):
         """
         return self._queue(queue).get()
 
-    @checkError
+    @catchCamomileError
     def getQueues(self, returns_id=False):
         """Get queues
 
@@ -1161,7 +1164,7 @@ class Camomile(object):
         result = self._queue().get()
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def createQueue(self, name, description=None, returns_id=False):
         """Create queue
 
@@ -1181,7 +1184,7 @@ class Camomile(object):
         result = self._queue().post(data=data)
         return self._id(result) if returns_id else result
 
-    @checkError
+    @catchCamomileError
     def updateQueue(self, queue, name=None, description=None, elements=None):
         """Update queue
 
@@ -1208,7 +1211,7 @@ class Camomile(object):
 
         return self._queue(queue).put(data=data)
 
-    @checkError
+    @catchCamomileError
     def enqueue(self, queue, elements):
         """Enqueue elements
 
@@ -1230,7 +1233,7 @@ class Camomile(object):
 
         return self._queue(queue).next.put(data=elements)
 
-    @checkError
+    @catchCamomileError
     def dequeue(self, queue):
         """Dequeue element
 
@@ -1246,7 +1249,7 @@ class Camomile(object):
         """
         return self._queue(queue).next.get()
 
-    @checkError
+    @catchCamomileError
     def deleteQueue(self, queue):
         """Delete existing queue
 
@@ -1261,6 +1264,6 @@ class Camomile(object):
     # UTILS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    @checkError
+    @catchCamomileError
     def getDate(self):
         return self._api.date.get()
