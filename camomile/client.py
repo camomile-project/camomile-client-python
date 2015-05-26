@@ -574,7 +574,7 @@ class Camomile(object):
         return self._medium(medium).get(params=params)
 
     @catchCamomileError
-    def getMedia(self, corpus=None, name=None, returns_id=False):
+    def getMedia(self, corpus=None, name=None, history=False, returns_id=False):
         """Get media
 
         Parameters
@@ -583,6 +583,8 @@ class Camomile(object):
             Corpus ID. Get media for this corpus.
         name : str, optional
             Filter medium by name.
+        history : boolean, optional
+            Whether to return history.  Defaults to False.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
@@ -592,7 +594,9 @@ class Camomile(object):
             List of media
         """
 
-        params = {'name': name} if name else None
+        params = {'history': 'on'} if history else {}
+        if name:
+            params['name'] = name
 
         if corpus:
             result = self._corpus(corpus).medium.get(params=params)
@@ -733,7 +737,7 @@ class Camomile(object):
         return self._layer(layer).get(params=params)
 
     @catchCamomileError
-    def getLayers(self, corpus=None, name=None, returns_id=False):
+    def getLayers(self, corpus=None, name=None, history=False, returns_id=False):
         """Get layers
 
         Parameters
@@ -742,6 +746,8 @@ class Camomile(object):
             Corpus ID. Get layers for this corpus.
         name : str, optional
             Filter layer by name.
+        history : boolean, optional
+            Whether to return history.  Defaults to False.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
@@ -751,7 +757,9 @@ class Camomile(object):
             List of layers in corpus.
         """
 
-        params = {'name': name} if name else None
+        params = {'history': 'on'} if history else {}
+        if name:
+            params['name'] = name
 
         if corpus:
             result = self._corpus(corpus).layer.get(params=params)
