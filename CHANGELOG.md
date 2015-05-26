@@ -1,3 +1,10 @@
+## Version 0.6 (2015-05-26)
+
+  - BREAKING: rename *Right* methods to *Permission*
+  - feat: support for queue permissions
+  - feat: "history" support for getMedia and getLayers
+  - doc: various docstring improvements
+
 ## Version 0.5.4 (2015-05-25)
 
   - improve: better error reporting
