@@ -977,6 +977,138 @@ class Camomile(object):
         return self._annotation(annotation).delete()
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # QUEUES
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    @catchCamomileError
+    def getQueue(self, queue):
+        """Get queue by ID
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID.
+
+        Returns
+        -------
+        queue : dict
+
+        """
+        return self._queue(queue).get()
+
+    @catchCamomileError
+    def getQueues(self, returns_id=False):
+        """Get queues
+
+        Parameters
+        ----------
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        queues : list or dict
+        """
+        result = self._queue().get()
+        return self._id(result) if returns_id else result
+
+    @catchCamomileError
+    def createQueue(self, name, description=None, returns_id=False):
+        """Create queue
+
+        Parameters
+        ----------
+        id_queue : str
+            Queue ID
+        returns_id : boolean, optional.
+            Returns IDs rather than dictionaries.
+
+        Returns
+        -------
+        queue : dict
+            Newly created queue.
+        """
+        data = {'name': name, 'description': description}
+        result = self._queue().post(data=data)
+        return self._id(result) if returns_id else result
+
+    @catchCamomileError
+    def updateQueue(self, queue, name=None, description=None, elements=None):
+        """Update queue
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID
+
+        Returns
+        -------
+        queue : dict
+            Updated queue.
+        """
+        data = {}
+
+        if name is not None:
+            data['name'] = name
+
+        if description is not None:
+            data['description'] = description
+
+        if elements is not None:
+            data['list'] = elements
+
+        return self._queue(queue).put(data=data)
+
+    @catchCamomileError
+    def enqueue(self, queue, elements):
+        """Enqueue elements
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID
+        elements : list
+            List of elements.
+
+        Returns
+        -------
+        queue : dict
+            Updated queue.
+        """
+
+        if not isinstance(elements, list):
+            elements = [elements]
+
+        return self._queue(queue).next.put(data=elements)
+
+    @catchCamomileError
+    def dequeue(self, queue):
+        """Dequeue element
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID
+
+        Returns
+        -------
+        element : object
+            Popped element from queue.
+        """
+        return self._queue(queue).next.get()
+
+    @catchCamomileError
+    def deleteQueue(self, queue):
+        """Delete existing queue
+
+        Parameters
+        ----------
+        queue : str
+            Queue ID
+        """
+        return self._queue(queue).delete()
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # RIGHTS
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1144,65 +1276,11 @@ class Camomile(object):
 
         return self.getLayerPermissions(layer)
 
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # QUEUES
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # on a queue
 
     @catchCamomileError
-    def getQueue(self, queue):
-        """Get queue by ID
-
-        Parameters
-        ----------
-        queue : str
-            Queue ID.
-
-        Returns
-        -------
-        queue : dict
-
-        """
-        return self._queue(queue).get()
-
-    @catchCamomileError
-    def getQueues(self, returns_id=False):
-        """Get queues
-
-        Parameters
-        ----------
-        returns_id : boolean, optional.
-            Returns IDs rather than dictionaries.
-
-        Returns
-        -------
-        queues : list or dict
-        """
-        result = self._queue().get()
-        return self._id(result) if returns_id else result
-
-    @catchCamomileError
-    def createQueue(self, name, description=None, returns_id=False):
-        """Create queue
-
-        Parameters
-        ----------
-        id_queue : str
-            Queue ID
-        returns_id : boolean, optional.
-            Returns IDs rather than dictionaries.
-
-        Returns
-        -------
-        queue : dict
-            Newly created queue.
-        """
-        data = {'name': name, 'description': description}
-        result = self._queue().post(data=data)
-        return self._id(result) if returns_id else result
-
-    @catchCamomileError
-    def updateQueue(self, queue, name=None, description=None, elements=None):
-        """Update queue
+    def getQueuePermissions(self, queue):
+        """Get permissions on existing queue
 
         Parameters
         ----------
@@ -1211,70 +1289,74 @@ class Camomile(object):
 
         Returns
         -------
-        queue : dict
-            Updated queue.
+        permissions : dict
+            Permissions on queue.
         """
-        data = {}
-
-        if name is not None:
-            data['name'] = name
-
-        if description is not None:
-            data['description'] = description
-
-        if elements is not None:
-            data['list'] = elements
-
-        return self._queue(queue).put(data=data)
+        return self._queue(queue).permissions.get()
 
     @catchCamomileError
-    def enqueue(self, queue, elements):
-        """Enqueue elements
+    def setQueuePermissions(self, queue, permission, user=None, group=None):
+        """Update permissions on a queue
 
         Parameters
         ----------
         queue : str
             Queue ID
-        elements : list
-            List of elements.
+        user : str, optional
+            User ID
+        group : str, optional
+            Group ID
+        permission : 1 (READ), 2 (WRITE) or 3 (ADMIN)
+            Read, Write or Admin privileges.
 
         Returns
         -------
-        queue : dict
-            Updated queue.
+        permissions : dict
+            Updated permissions on the queue.
+
         """
+        if user is None and group is None:
+            raise ValueError('')
 
-        if not isinstance(elements, list):
-            elements = [elements]
+        data = {'right': permission}
 
-        return self._queue(queue).next.put(data=elements)
+        if user:
+            self._queue(queue).user(user).put(data=data)
+
+        if group:
+            self._queue(queue).group(group).put(data=data)
+
+        return self.getQueuePermissions(queue)
 
     @catchCamomileError
-    def dequeue(self, queue):
-        """Dequeue element
+    def removeQueuePermissions(self, queue, user=None, group=None):
+        """Remove permissions on a queue
 
         Parameters
         ----------
         queue : str
             Queue ID
+        user : str, optional
+            User ID
+        group : str, optional
+            Group ID
 
         Returns
         -------
-        element : object
-            Popped element from queue.
+        permissions : dict
+            Updated permissions on the queue.
         """
-        return self._queue(queue).next.get()
 
-    @catchCamomileError
-    def deleteQueue(self, queue):
-        """Delete existing queue
+        if user is None and group is None:
+            raise ValueError('')
 
-        Parameters
-        ----------
-        queue : str
-            Queue ID
-        """
-        return self._queue(queue).delete()
+        if user:
+            self._queue(queue).user(user).delete()
+
+        if group:
+            self._queue(queue).group(group).delete()
+
+        return self.getQueuePermissions(queue)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # UTILS
