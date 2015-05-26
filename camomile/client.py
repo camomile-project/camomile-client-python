@@ -983,8 +983,8 @@ class Camomile(object):
     # on a corpus
 
     @catchCamomileError
-    def getCorpusRights(self, corpus):
-        """Get rights on existing corpus
+    def getCorpusPermissions(self, corpus):
+        """Get permissions on existing corpus
 
         Parameters
         ----------
@@ -993,14 +993,14 @@ class Camomile(object):
 
         Returns
         -------
-        rights : dict
-            Rights on corpus.
+        permissions : dict
+            Permissions on corpus.
         """
         return self._corpus(corpus).permissions.get()
 
     @catchCamomileError
-    def setCorpusRights(self, corpus, right, user=None, group=None):
-        """Update rights on a corpus
+    def setCorpusPermissions(self, corpus, permission, user=None, group=None):
+        """Update permissions on a corpus
 
         Parameters
         ----------
@@ -1010,19 +1010,19 @@ class Camomile(object):
             User ID
         group : str, optional
             Group ID
-        right : {'O', 'W', 'R'}
-            Owner, writer or reader.
+        permission : 1 (READ), 2 (WRITE) or 3 (ADMIN)
+            Read, Write or Admin privileges.
 
         Returns
         -------
-        rights : dict
-            Updated rights on the corpus.
+        permissions : dict
+            Updated permissions on the corpus.
 
         """
         if user is None and group is None:
             raise ValueError('')
 
-        data = {'right': right}
+        data = {'right': permission}
 
         if user:
             self._corpus(corpus).user(user).put(data=data)
@@ -1030,11 +1030,11 @@ class Camomile(object):
         if group:
             self._corpus(corpus).group(group).put(data=data)
 
-        return self.getCorpusRights(corpus)
+        return self.getCorpusPermissions(corpus)
 
     @catchCamomileError
-    def removeCorpusRights(self, corpus, user=None, group=None):
-        """Remove rights on a corpus
+    def removeCorpusPermissions(self, corpus, user=None, group=None):
+        """Remove permissions on a corpus
 
         Parameters
         ----------
@@ -1044,13 +1044,11 @@ class Camomile(object):
             User ID
         group : str, optional
             Group ID
-        right : {'O', 'W', 'R'}
-            Owner, writer or reader.
 
         Returns
         -------
-        rights : dict
-            Updated rights on the corpus.
+        permissions : dict
+            Updated permissions on the corpus.
         """
 
         if user is None and group is None:
@@ -1062,28 +1060,28 @@ class Camomile(object):
         if group:
             self._corpus(corpus).group(group).delete()
 
-        return self.getCorpusRights(corpus)
+        return self.getCorpusPermissions(corpus)
 
     # on a layer
 
     @catchCamomileError
-    def getLayerRights(self, layer):
-        """Get rights on existing layer
+    def getLayerPermissions(self, layer):
+        """Get permissions on existing layer
 
         Parameters
         ----------
         layer : str
-            Corpus ID
+            Layer ID
 
         Returns
         -------
-        rights : dict
-            Rights on layer.
+        permissions : dict
+            Permissions on layer.
         """
         return self._layer(layer).permissions.get()
 
     @catchCamomileError
-    def setLayerRights(self, layer, right, user=None, group=None):
+    def setLayerPermissions(self, layer, permission, user=None, group=None):
         """Update rights on a layer
 
         Parameters
@@ -1094,19 +1092,19 @@ class Camomile(object):
             User ID
         group : str, optional
             Group ID
-        right : {'O', 'W', 'R'}
-            Owner, writer or reader.
+        permission : 1 (READ), 2 (WRITE) or 3 (ADMIN)
+            Read, Write or Admin privileges.
 
         Returns
         -------
-        rights : dict
-            Updated rights on the layer.
+        permissions : dict
+            Updated permissions on the layer.
 
         """
         if user is None and group is None:
             raise ValueError('')
 
-        data = {'right': right}
+        data = {'right': permission}
 
         if user:
             self._layer(layer).user(user).put(data=data)
@@ -1114,11 +1112,11 @@ class Camomile(object):
         if group:
             self._layer(layer).group(group).put(data=data)
 
-        return self.getLayerRights(layer)
+        return self.getLayerPermissions(layer)
 
     @catchCamomileError
-    def removeLayerRights(self, layer, user=None, group=None):
-        """Remove rights on a layer
+    def removeLayerPermissions(self, layer, user=None, group=None):
+        """Remove permissions on a layer
 
         Parameters
         ----------
@@ -1128,13 +1126,11 @@ class Camomile(object):
             User ID
         group : str, optional
             Group ID
-        right : {'O', 'W', 'R'}
-            Owner, writer or reader.
 
         Returns
         -------
-        rights : dict
-            Updated rights on the layer.
+        permissions : dict
+            Updated permissions on the layer.
         """
 
         if user is None and group is None:
@@ -1146,7 +1142,7 @@ class Camomile(object):
         if group:
             self._layer(layer).group(group).delete()
 
-        return self.getLayerRights(layer)
+        return self.getLayerPermissions(layer)
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # QUEUES
