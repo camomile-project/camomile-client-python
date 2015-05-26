@@ -616,6 +616,8 @@ class Camomile(object):
             Corpus ID.
         name : str
             Medium name.
+        url : str, optional
+            Relative path to medium files.
         description : object, optional
             Medium description.  Must be JSON-serializable.
         returns_id : boolean, optional.
