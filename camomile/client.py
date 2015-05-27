@@ -196,6 +196,11 @@ class Camomile(object):
         return self._id(result) if returns_id else result
 
     @catchCamomileError
+    def getMyGroups(self):
+        """Get groups the logged in user belongs to"""
+        return self._api.me.group.get()
+
+    @catchCamomileError
     def update_password(self, new_password=None):
         """Update password"""
 
