@@ -1,3 +1,7 @@
+## Version 0.6.1 (2015-05-27)
+
+  - feat: support for new route /me/group (getMyGroups)
+  
 ## Version 0.6 (2015-05-26)
 
   - BREAKING: rename *Right* methods to *Permission*
