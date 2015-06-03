@@ -1002,11 +1002,13 @@ class Camomile(object):
         return self._queue(queue).get()
 
     @catchCamomileError
-    def getQueues(self, returns_id=False):
+    def getQueues(self, name=None, returns_id=False):
         """Get queues
 
         Parameters
         ----------
+        name : str, optional
+            Filter queues by name.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
 
@@ -1014,7 +1016,10 @@ class Camomile(object):
         -------
         queues : list or dict
         """
-        result = self._queue().get()
+
+        params = {'name': name} if name else {}
+
+        result = self._queue().get(params=params)
         return self._id(result) if returns_id else result
 
     @catchCamomileError
