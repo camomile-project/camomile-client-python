@@ -1,3 +1,7 @@
+## Version 0.6.2 (2015-06-03)
+
+  - feat: filter queues by name
+
 ## Version 0.6.1 (2015-05-27)
 
   - feat: support for new route /me/group (getMyGroups)
