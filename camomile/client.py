@@ -1108,6 +1108,21 @@ class Camomile(object):
         return self._queue(queue).next.get()
 
     @catchCamomileError
+    def pick(self, queue):
+        """(Non-destructively) pick first element of queue"""
+        return self._queue(queue).first.get()
+
+    @catchCamomileError
+    def pickAll(self, queue):
+        """(Non-destructively) pick all elements of queue"""
+        return self._queue(queue).all.get()
+
+    @catchCamomileError
+    def pickLength(self, queue):
+        """(Non-destructively) get number of elements in queue"""
+        return self._queue(queue).length.get()
+
+    @catchCamomileError
     def deleteQueue(self, queue):
         """Delete existing queue
 
