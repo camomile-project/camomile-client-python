@@ -1,3 +1,7 @@
+## Version 0.6.3 (2015-06-08)
+
+  - feat: support for new non-destructive queue picking routes
+
 ## Version 0.6.2 (2015-06-03)
 
   - feat: filter queues by name
