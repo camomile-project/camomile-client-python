@@ -1,3 +1,7 @@
+## Version 0.6.4 (2015-06-10)
+
+  - feat: filter annotations by fragment or data
+
 ## Version 0.6.3 (2015-06-08)
 
   - feat: support for new non-destructive queue picking routes

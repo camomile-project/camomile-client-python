@@ -579,7 +579,8 @@ class Camomile(object):
         return self._medium(medium).get(params=params)
 
     @catchCamomileError
-    def getMedia(self, corpus=None, name=None, history=False, returns_id=False):
+    def getMedia(self, corpus=None, name=None, history=False,
+                 returns_id=False):
         """Get media
 
         Parameters
@@ -744,7 +745,8 @@ class Camomile(object):
         return self._layer(layer).get(params=params)
 
     @catchCamomileError
-    def getLayers(self, corpus=None, name=None, history=False, returns_id=False):
+    def getLayers(self, corpus=None, name=None, history=False,
+                  returns_id=False):
         """Get layers
 
         Parameters
@@ -887,6 +889,7 @@ class Camomile(object):
 
     @catchCamomileError
     def getAnnotations(self, layer=None, medium=None,
+                       fragment=None, data=None,
                        history=False, returns_id=False):
         """Get annotations
 
@@ -896,6 +899,10 @@ class Camomile(object):
             Filter annotations by layer.
         medium : str, optional
             Filter annotations by medium.
+        fragment : optional
+            Filter annotations by fragment.
+        data : optional
+            Filter annotations by data.
         history : boolean, optional
             Whether to return history.  Defaults to False.
         returns_id : boolean, optional.
@@ -911,6 +918,10 @@ class Camomile(object):
         params = {'history': 'on'} if history else {}
         if medium:
             params['id_medium'] = medium
+        if fragment:
+            params['fragment'] = fragment
+        if data:
+            params['data'] = data
 
         if layer:
             result = self._layer(layer).annotation.get(params=params)
