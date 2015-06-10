@@ -579,7 +579,8 @@ class Camomile(object):
         return self._medium(medium).get(params=params)
 
     @catchCamomileError
-    def getMedia(self, corpus=None, name=None, history=False, returns_id=False):
+    def getMedia(self, corpus=None, name=None, history=False,
+                 returns_id=False):
         """Get media
 
         Parameters
@@ -744,7 +745,8 @@ class Camomile(object):
         return self._layer(layer).get(params=params)
 
     @catchCamomileError
-    def getLayers(self, corpus=None, name=None, history=False, returns_id=False):
+    def getLayers(self, corpus=None, name=None, history=False,
+                  returns_id=False):
         """Get layers
 
         Parameters
