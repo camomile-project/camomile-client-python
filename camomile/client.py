@@ -745,8 +745,9 @@ class Camomile(object):
         return self._layer(layer).get(params=params)
 
     @catchCamomileError
-    def getLayers(self, corpus=None, name=None, history=False,
-                  returns_id=False):
+    def getLayers(self, corpus=None, name=None,
+                  fragment_type=None, data_type=None,
+                  history=False, returns_id=False):
         """Get layers
 
         Parameters
@@ -755,6 +756,10 @@ class Camomile(object):
             Corpus ID. Get layers for this corpus.
         name : str, optional
             Filter layer by name.
+        fragment_type : str, optional
+            Filter layer by fragment type.
+        data_type : str, optional
+            Filter layer by data type.
         history : boolean, optional
             Whether to return history.  Defaults to False.
         returns_id : boolean, optional.
@@ -767,8 +772,15 @@ class Camomile(object):
         """
 
         params = {'history': 'on'} if history else {}
+
         if name:
             params['name'] = name
+
+        if fragment_type:
+            params['fragment_type'] = fragment_type
+
+        if data_type:
+            params['data_type'] = data_type
 
         if corpus:
             result = self._corpus(corpus).layer.get(params=params)
