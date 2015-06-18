@@ -1,3 +1,7 @@
+## Version 0.6.5 (2015-06-18)
+
+  - feat: filter layers by fragment_type or data_type
+
 ## Version 0.6.4 (2015-06-10)
 
   - feat: filter annotations by fragment or data
