@@ -580,7 +580,7 @@ class Camomile(object):
 
     @catchCamomileError
     def getMedia(self, corpus=None, name=None, history=False,
-                 returns_id=False):
+                 returns_id=False, returns_count=False):
         """Get media
 
         Parameters
@@ -593,6 +593,8 @@ class Camomile(object):
             Whether to return history.  Defaults to False.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
+        returns_count : boolean, optional.
+            Returns count of media instead of media.
 
         Returns
         -------
@@ -605,11 +607,21 @@ class Camomile(object):
             params['name'] = name
 
         if corpus:
-            result = self._corpus(corpus).medium.get(params=params)
+            # /corpus/:id_corpus/medium
+            route = self._corpus(corpus).medium
+            if returns_count:
+                # /corpus/:id_corpus/medium/count
+                route = route.count
+            result = route.get(params=params)
         else:
+            # /medium/count does not exist
+            if returns_count:
+                raise ValueError('returns_count needs a corpus.')
             result = self._medium().get(params=params)
 
-        return self._id(result) if returns_id else result
+        return (self._id(result)
+                if (returns_id and not returns_count)
+                else result)
 
     @catchCamomileError
     def createMedium(self, corpus, name, url=None, description=None,
@@ -902,7 +914,8 @@ class Camomile(object):
     @catchCamomileError
     def getAnnotations(self, layer=None, medium=None,
                        fragment=None, data=None,
-                       history=False, returns_id=False):
+                       history=False, returns_id=False,
+                       returns_count=False):
         """Get annotations
 
         Parameters
@@ -919,6 +932,8 @@ class Camomile(object):
             Whether to return history.  Defaults to False.
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
+        returns_count : boolean, optional.
+            Returns number of annotations instead of annotations
 
         Returns
         -------
@@ -936,18 +951,35 @@ class Camomile(object):
             params['data'] = data
 
         if layer:
-            result = self._layer(layer).annotation.get(params=params)
+            # /layer/:id_layer/annotation
+            route = self._layer(layer).annotation
+            if returns_count:
+                # /layer/:id_layer/annotation/count
+                route = route.count
+            result = route.get(params=params)
 
         else:
             # admin user only
+            if returns_count:
+                # /annotatoin/count does not exist
+                raise ValueError('returns_count needs a layer')
             result = self._annotation().get(params=params)
 
-        return self._id(result) if returns_id else result
+        return (self._id(result)
+                if (returns_id and not returns_count)
+                else result)
 
     @catchCamomileError
     def createAnnotation(self, layer, medium=None, fragment=None, data=None,
                          returns_id=False):
-        """
+        """Create new annotation
+
+        Parameters
+        ----------
+        layer : str
+        medium : str, optional
+        fragment :
+        data :
         returns_id : boolean, optional.
             Returns IDs rather than dictionaries.
         """

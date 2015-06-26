@@ -1,3 +1,7 @@
+## Version 0.6.x (2015-06-26)
+
+  - feat: support for .../count routes
+
 ## Version 0.6.5 (2015-06-18)
 
   - feat: filter layers by fragment_type or data_type
