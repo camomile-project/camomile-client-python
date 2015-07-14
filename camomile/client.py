@@ -43,7 +43,14 @@ def catchCamomileError(f1):
         try:
             return f1(*args, **kwargs)
         except requests.exceptions.HTTPError as e:
-            error = e.response.json().get('error', None)
+
+
+            try:
+                json = e.response.json()
+                error = json.get('error', None)
+            except Exception as e:
+                error = None
+
             if error:
                 if e.response.status_code < 500:
                     fmt = '%s Camomile Client Error: %s'
