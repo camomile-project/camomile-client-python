@@ -1,3 +1,8 @@
+## Version 0.7 (2015-07-14) "Aux aaaaarmes, citoyens !"
+
+  - feat: support for .../count routes
+  - fix: failed response may not JSON-serializable
+
 ## Version 0.6.5 (2015-06-18)
 
   - feat: filter layers by fragment_type or data_type
@@ -17,7 +22,7 @@
 ## Version 0.6.1 (2015-05-27)
 
   - feat: support for new route /me/group (getMyGroups)
-  
+
 ## Version 0.6 (2015-05-26)
 
   - BREAKING: rename *Right* methods to *Permission*
