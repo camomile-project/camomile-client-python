@@ -38,10 +38,10 @@ from getpass import getpass
 
 # Decorator catching HTTPErrors and replacing the generic error message
 # with the Camomile error field found in the response data.
-def catchCamomileError(f1):
-    def f2(*args, **kwargs):
+def catchCamomileError(func):
+    def decoratedFunc(*args, **kwargs):
         try:
-            return f1(*args, **kwargs)
+            return func(*args, **kwargs)
         except requests.exceptions.HTTPError as e:
 
 
@@ -59,10 +59,11 @@ def catchCamomileError(f1):
                 e.message = fmt % (e.response.status_code, error)
 
             raise requests.exceptions.HTTPError(e.message, response=e.response)
+
     # keep name and docstring of the initial function
-    f2.__name__ = f1.__name__
-    f2.__doc__ = f1.__doc__
-    return f2
+    decoratedFunc.__name__ = func.__name__
+    decoratedFunc.__doc__ = func.__doc__
+    return decoratedFunc
 
 
 class Camomile(object):
