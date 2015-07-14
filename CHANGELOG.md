@@ -1,6 +1,7 @@
-## Version 0.6.x (2015-06-26)
+## Version 0.7.0 (2015-07-14) "Aux aaaaarmes, citoyens !"
 
   - feat: support for .../count routes
+  - fix: failed response may not JSON-serializable
 
 ## Version 0.6.5 (2015-06-18)
 
@@ -21,7 +22,7 @@
 ## Version 0.6.1 (2015-05-27)
 
   - feat: support for new route /me/group (getMyGroups)
-  
+
 ## Version 0.6 (2015-05-26)
 
   - BREAKING: rename *Right* methods to *Permission*

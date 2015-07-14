@@ -42,8 +42,8 @@ def catchCamomileError(func):
     def decoratedFunc(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except requests.exceptions.HTTPError as e:
 
+        except requests.exceptions.HTTPError as e:
 
             try:
                 json = e.response.json()
