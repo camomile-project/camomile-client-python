@@ -1,4 +1,4 @@
-## Version 0.7.0 (2015-07-14) "Aux aaaaarmes, citoyens !"
+## Version 0.7 (2015-07-14) "Aux aaaaarmes, citoyens !"
 
   - feat: support for .../count routes
   - fix: failed response may not JSON-serializable
