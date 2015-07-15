@@ -58,7 +58,13 @@ def catchCamomileError(func):
                     fmt = '%s Camomile Server Error: %s'
                 e.message = fmt % (e.response.status_code, error)
 
-            raise requests.exceptions.HTTPError(e.message, response=e.response)
+            # it may happen that server does not respond at all.
+            if hasattr(e, 'response'):
+                response = e.response
+            else:
+                response = None
+
+            raise requests.exceptions.HTTPError(e.message, response=response)
 
     # keep name and docstring of the initial function
     decoratedFunc.__name__ = func.__name__
