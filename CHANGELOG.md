@@ -1,3 +1,7 @@
+## Version 0.7.1 (2015-07-15)
+
+  - fix: failed request may not contain any response
+
 ## Version 0.7 (2015-07-14) "Aux aaaaarmes, citoyens !"
 
   - feat: support for .../count routes
