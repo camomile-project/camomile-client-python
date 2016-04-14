@@ -1,3 +1,7 @@
+## Version 0.7.2 (2016-04-14)
+
+  - fix: updateAnnotation would not allow to update annotation data
+
 ## Version 0.7.1 (2015-07-15)
 
   - fix: failed request may not contain any response
