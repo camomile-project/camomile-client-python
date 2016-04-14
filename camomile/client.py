@@ -1029,15 +1029,15 @@ class Camomile(object):
         annotation : dict
             Updated annotation.
         """
-        data = {}
+        _data = {}
 
         if fragment is not None:
-            data['fragment'] = fragment
+            _data['fragment'] = fragment
 
         if data is not None:
-            data['data'] = data
+            _data['data'] = data
 
-        return self._annotation(annotation).put(data=data)
+        return self._annotation(annotation).put(data=_data)
 
     @catchCamomileError
     def deleteAnnotation(self, annotation):
