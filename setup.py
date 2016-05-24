@@ -48,6 +48,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'tortilla >= 0.4.1',
+        'sseclient >= 0.0.11'
     ],
     classifiers=[
         "Development Status :: 4 - Beta",

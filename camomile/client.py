@@ -33,7 +33,12 @@
 
 import tortilla
 import requests
+import os
+import threading
+import json
+
 from getpass import getpass
+from sseclient import SSEClient
 
 
 # Decorator catching HTTPErrors and replacing the generic error message
@@ -108,6 +113,9 @@ class Camomile(object):
         # internally rely on tortilla generic API wrapper
         # see http://github.com/redodo/tortilla
         self._api = tortilla.wrap(url, format='json', delay=delay, debug=debug)
+        self._url = url;
+        self._listenerCallbacks = {}
+        self._thread = None
 
         # log in if `username` is provided
         if username:
@@ -196,11 +204,17 @@ class Camomile(object):
 
         data = {'username': username,
                 'password': password}
+        
         return self._api.login.post(data=data)
 
     @catchCamomileError
     def logout(self):
         """Logout"""
+        
+        if self._thread:
+           self._thread.isRun = False
+           self._thread = None
+            
         return self._api.logout.post()
 
     @catchCamomileError
@@ -1451,6 +1465,466 @@ class Camomile(object):
             self._queue(queue).group(group).delete()
 
         return self.getQueuePermissions(queue)
+
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # METADATA (Corpus, Layer, Medium)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    #
+    # CORPUS
+    
+    @catchCamomileError
+    def getCorpusMetadata(self, corpus, path=None):
+        """Get Corpus metadatas
+
+        Parameters
+        ----------
+        corpus : str
+            corpus ID
+        path : str, optional
+            metadata path
+
+        Returns
+        -------
+        metadatas : dict
+            Coprus metadatas
+        """
+        return self.__getMetadata(self._corpus(corpus), path)
+        
+    @catchCamomileError
+    def getCorpusMetadataKeys(self, corpus, path=None):
+        """Get Corpus metadatas first level keys
+
+        Parameters
+        ----------
+        corpus : str
+            corpus ID
+        path : str, optional
+            metadata path
+
+        Returns
+        -------
+        keys : List
+            Corpus metadatas first level keys
+        """
+        return self.__getMetadataKeys(self._corpus(corpus), path)
+        
+    @catchCamomileError
+    def setCorpusMetadata(self, corpus, datas, path=None):
+        """Set Corpus metadatas
+
+        Parameters
+        ----------
+        corpus : str
+            corpus ID
+        datas : dict
+            metadatas
+        """
+        return self.__setMetadata(self._corpus(corpus), datas, path)
+        
+    @catchCamomileError
+    def sendCorpusMetadataFile(self, corpus, path, filepath):
+        """Send corpus metadata file
+
+        Parameters
+        ----------
+        corpus : str
+            corpus ID
+        path : str
+            metadata path
+        filepath : str
+            metadata filepath
+        """
+        return self.__sendMetadataFile(self._corpus(corpus), path, filepath)
+    
+    @catchCamomileError
+    def deleteCorpusMetadata(self, corpus, path):
+        """Delete Corpus metadatas
+
+        Parameters
+        ----------
+        corpus : str
+            corpus ID
+        path : str
+            delete path
+        """
+        return self.__deleteMetadata(self._corpus(corpus), path)
+    
+    #
+    # LAYER
+    @catchCamomileError
+    def getLayerMetadata(self, layer, path=None):
+        """Get Layer metadatas
+
+        Parameters
+        ----------
+        layer : str
+            layer ID
+        path : str, optional
+            metadata path
+
+        Returns
+        -------
+        metadatas : dict
+            Layer metadatas
+        """
+        return self.__getMetadata(self._layer(layer), path)
+        
+    @catchCamomileError
+    def getLayerMetadataKeys(self, layer, path=None):
+        """Get Layer metadatas first level keys
+
+        Parameters
+        ----------
+        layer : str
+            layer ID
+        path : str, optional
+            metadata path
+
+        Returns
+        -------
+        keys : List
+            Layer metadatas first level keys
+        """
+        return self.__getMetadataKeys(self._layer(layer), path)
+        
+    @catchCamomileError
+    def setLayerMetadata(self, layer, datas, path=None):
+        """Set Layer metadatas
+
+        Parameters
+        ----------
+        layer : str
+            layer ID
+        datas : dict
+            metadatas
+        """
+        return self.__setMetadata(self._layer(layer), datas, path)
+        
+    @catchCamomileError
+    def sendLayerMetadataFile(self, layer, path, filepath):
+        """Send layer metadata file
+
+        Parameters
+        ----------
+        layer : str
+            layer ID
+        path : str
+            metadata path
+        filepath : str
+            metadata filepath
+        """
+        return self.__sendMetadataFile(self._layer(layer), path, filepath)
+    
+    @catchCamomileError
+    def deleteLayerMetadata(self, layer, path):
+        """Delete Layer metadatas
+
+        Parameters
+        ----------
+        layer : str
+            layer ID
+        path : str
+            delete path
+        """
+        return self.__deleteMetadata(self._layer(layer), path)
+    
+    #
+    # MEDIUM
+    @catchCamomileError
+    def getMediumMetadata(self, medium, path=None):
+        """Get Medium metadatas
+
+        Parameters
+        ----------
+        medium : str
+            medium ID
+        path : str, optional
+            metadata path
+
+        Returns
+        -------
+        metadatas : dict
+            Medium metadatas
+        """
+        return self.__getMetadata(self._medium(medium), path)
+    
+    @catchCamomileError     
+    def getMediumMetadataKeys(self, medium, path=None):
+        """Get Medium metadatas first level keys
+
+        Parameters
+        ----------
+        medium : str
+            medium ID
+        path : str, optional
+            metadata path
+
+        Returns
+        -------
+        keys : List
+            Medium metadatas first level keys
+        """
+        return self.__getMetadataKeys(self._medium(medium), path)
+       
+    @catchCamomileError 
+    def setMediumMetadata(self, medium, datas, path=None):
+        """Set Medium metadatas
+
+        Parameters
+        ----------
+        medium : str
+            medium ID
+        datas : dict
+            metadatas
+        path : str, optional
+            metadata path
+        """
+        return self.__setMetadata(self._medium(medium), datas, path)
+       
+    @catchCamomileError 
+    def sendMediumMetadataFile(self, medium, path, filepath):
+        """Send medium metadata file
+
+        Parameters
+        ----------
+        medium : str
+            medium ID
+        path : str
+            metadata path
+        filepath : str
+            metadata filepath
+        """
+        return self.__sendMetadataFile(self._medium(medium), path, filepath)
+    
+    @catchCamomileError
+    def deleteMediumMetadata(self, medium, path):
+        """Delete Medium metadatas
+
+        Parameters
+        ----------
+        medium : str
+            medium ID
+        path : str
+            delete path
+        """
+        return self.__deleteMetadata(self._medium(medium), path)
+
+    #
+    # PRIVATE METHODS
+    def __getMetadata(self, resource,path=None):
+        if path is None: 
+            return resource.metadata().get()
+        
+        return resource.metadata(path).get()
+        
+    def __getMetadataKeys(self, resource, path=None):
+        if path is None: 
+            return resource.metadata().get()
+        
+        return resource.metadata(path + '.').get()
+        
+    def __setMetadata(self, resource, datas, path=None):
+        if path != None:
+            paths = path.split('.')
+            newDatas = {}
+            accessor = newDatas
+            for i in xrange(len(paths)):
+                accessor[paths[i]] = {}
+                if i == len(paths) -1:
+                    accessor[paths[i]] = datas
+                else:
+                    accessor = accessor[paths[i]]
+            datas = newDatas;
+        
+        return resource.metadata().post(data=datas)
+    
+    def __sendMetadataFile(self, resource, path, filepath):
+        with open(filepath, "rb") as f:
+            data = f.read()
+            b64 = data.encode("base64")
+            paths = path.split('.')
+            datas = {}
+            accessor = datas
+            for i in xrange(len(paths)):
+                accessor[paths[i]] = {}
+                if i == len(paths) -1:
+                    accessor[paths[i]] = {
+                        'type': 'file',
+                        'filename': os.path.basename(filepath),
+                        'data': b64
+                    }
+                else:
+                    accessor = accessor[paths[i]]
+            
+        return resource.metadata().post(data=datas)
+    
+    def __deleteMetadata(self, resource, path):
+        return resource.metadata(path).delete()
+    
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # SSE
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    @catchCamomileError
+    def __startListener(self):
+        if self._thread == None:
+            datas = self._api.listen.post();
+            self._channel_id = datas.channel_id
+            self._sseClient = SSEClient("%s/listen/%s" % (self._url, self._channel_id))
+            self._thread = threading.Thread(target=self.__listener, name="SSEClient")
+            self._thread.isRun = True
+            self._thread.daemon = True
+            self._thread.start()
+        pass
+        
+
+    def __listener(self):
+        t = threading.currentThread()
+        for msg in self._sseClient:
+          if not t.isRun:
+              break;
+          
+          if msg.event in self._listenerCallbacks:
+              self._listenerCallbacks[msg.event](json.loads(msg.data)['event'])
+        pass
+    
+    @catchCamomileError
+    def watchCorpus(self, corpus_id, callback):
+        """ Watch corpus for: 
+        
+        - Add and Remove medium `{'corpus': {:corpus}, 'event': {'add_medium': {:medium}}}`
+        - Add and Remove layer `{'corpus': {:corpus}, 'event': {'add_layer': {:layer}}}` 
+        - Update corpus attributes `{'corpus': {:corpus}, 'event': {'update': ['description', 'name']}}}`
+        
+        Parameters
+        ----------
+        corpus_id : str
+            corpus ID
+        callback : function
+            callback function
+        """
+        self.__startListener()
+        result = self._api.listen(self._channel_id).corpus(corpus_id).put()
+        if 'event' in result:
+            self._listenerCallbacks['corpus:' + corpus_id] = callback
+        return result
+    
+    @catchCamomileError
+    def unwatchCorpus(self, corpus_id):
+        """ UnWatch corpus
+        
+        Parameters
+        ----------
+        corpus_id : str
+            corpus ID
+        """  
+        result = self._api.listen(self._channel_id).corpus(corpus_id).delete()
+        if 'success' in result:
+            del self._listenerCallbacks['corpus:' + corpus_id]
+        return result
+    
+    @catchCamomileError
+    def watchLayer(self, layer_id, callback):
+        """ Watch layer for: 
+        
+        - Add and Remove annotation `{'layer': {:layer}, 'event': {'add_annotation': {:annotation}}}` 
+        - Update layer attributes `{'layer': {:layer}, 'event': {'update': ['name']}}}`
+        
+        Parameters
+        ----------
+        layer_id : str
+            layer ID
+        callback : function
+            callback function
+        """        
+        self.__startListener()
+        result = self._api.listen(self._channel_id).layer(layer_id).put()
+        if 'event' in result:
+            self._listenerCallbacks['layer:' + layer_id] = callback
+        return result
+    
+    @catchCamomileError
+    def unwatchLayer(self, layer_id):
+        """ UnWatch layer
+        
+        Parameters
+        ----------
+        layer_id : str
+            layer ID
+        """  
+        result = self._api.listen(self._channel_id).layer(layer_id).delete()
+        if 'success' in result:
+            del self._listenerCallbacks['layer:' + layer_id]
+        return result
+    
+    @catchCamomileError
+    def watchMedium(self, medium_id, callback):
+        """ Watch medium for: 
+
+        - Update medium attributes `{'medium': {:medium}, 'event': {'update': ['url']}}}`
+        
+        Parameters
+        ----------
+        medium_id : str
+            medium ID
+        callback : function
+            callback function
+        """ 
+        self.__startListener()
+        result = self._api.listen(self._channel_id).medium(medium_id).put()
+        if 'event' in result:
+            self._listenerCallbacks['medium:' + medium_id] = callback
+        return result
+    
+    @catchCamomileError
+    def unwatchMedium(self, medium_id):
+        """ UnWatch medium
+        
+        Parameters
+        ----------
+        medium_id : str
+            medium ID
+        """  
+        result = self._api.listen(self._channel_id).medium(medium_id).delete()
+        if 'success' in result:
+            del self._listenerCallbacks['medium:' + medium_id]
+        return result
+    
+    
+    @catchCamomileError
+    def watchQueue(self, queue_id, callback):
+        """ Watch queue for: 
+
+        - Push item in queue `{'queue': {:queue}, 'event': {'push_item': <new_number_of_items_in_queue>}}` 
+        - Pop item in queue `{'queue': {:queue}, 'event': {'pop_item': <new_number_of_items_in_queue>}}`
+        
+        Parameters
+        ----------
+        queue_id : str
+            queue ID
+        callback : function
+            callback function
+        """
+        self.__startListener()
+        result = self._api.listen(self._channel_id).queue(queue_id).put()
+        if 'event' in result:
+            self._listenerCallbacks['queue:' + queue_id] = callback
+        return result
+    
+    @catchCamomileError
+    def unwatchQueue(self, queue_id):
+        """ UnWatch queue
+        
+        Parameters
+        ----------
+        queue_id : str
+            queue ID
+        """
+        result = self._api.listen(self._channel_id).queue(queue_id).delete()
+        if 'success' in result:
+            del self._listenerCallbacks['queue:' + queue_id]
+        return result
+
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # UTILS
