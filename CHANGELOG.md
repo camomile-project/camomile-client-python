@@ -1,3 +1,8 @@
+## Version 0.8 (2016-05-25)
+
+ - feat: {corpus | layer | medium} metadata
+ - feat: {corpus | layer | medium | queue } events subscription
+
 ## Version 0.7.2 (2016-04-14)
 
   - fix: updateAnnotation would not allow to update annotation data
