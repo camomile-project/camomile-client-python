@@ -4,7 +4,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2014-2015 CNRS
+# Copyright (c) 2014-2016 CNRS
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,10 +44,10 @@ setup(
     description='Python client for the Camomile API',
     author='Hervé Bredin',
     author_email='bredin@limsi.fr',
-    url='http://github.com/camomile-project',
+    url='http://camomile-project.github.io',
     packages=find_packages(),
     install_requires=[
-        'tortilla >= 0.4.1',
+        'tortilla >= 0.4.2',
         'sseclient >= 0.0.11'
     ],
     classifiers=[
@@ -56,5 +56,8 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Topic :: Scientific/Engineering"]
 )
