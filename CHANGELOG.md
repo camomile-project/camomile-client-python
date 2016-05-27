@@ -1,3 +1,7 @@
+## Version 0.8.1 (2016-05-27)
+
+ - feat: Python 3 support
+ 
 ## Version 0.8 (2016-05-25)
 
  - feat: {corpus | layer | medium} metadata
