@@ -1,4 +1,4 @@
-## Version 0.8.2 (2016-05-29)
+## Version 0.8.3 (2016-05-29)
 
  - feat: Python 3 support
 
