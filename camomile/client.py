@@ -1474,22 +1474,25 @@ class Camomile(object):
     # CORPUS
 
     @catchCamomileError
-    def getCorpusMetadata(self, corpus, path=None):
-        """Get Corpus metadatas
+    def getCorpusMetadata(self, corpus, path=None, file=False):
+        """Get corpus metadata
 
         Parameters
         ----------
         corpus : str
-            corpus ID
+            Corpus ID
         path : str, optional
-            metadata path
+            Metadata path. Defaults to root.
+        file : boolean, optional
+            If True and metadata is actually a file, returns the file content.
+            Defaults to False.
 
         Returns
         -------
-        metadatas : dict
-            Coprus metadatas
+        metadata : object
+            Metadata at 'path'.
         """
-        return self.__getMetadata(self._corpus(corpus), path)
+        return self.__getMetadata(self._corpus(corpus), path=path, file=file)
 
     @catchCamomileError
     def getCorpusMetadataKeys(self, corpus, path=None):
@@ -1553,22 +1556,25 @@ class Camomile(object):
     #
     # LAYER
     @catchCamomileError
-    def getLayerMetadata(self, layer, path=None):
-        """Get Layer metadatas
+    def getLayerMetadata(self, layer, path=None, file=False):
+        """Get layer metadata
 
         Parameters
         ----------
         layer : str
-            layer ID
+            Layer ID
         path : str, optional
-            metadata path
+            Metadata path. Defaults to root.
+        file : boolean, optional
+            If True and metadata is actually a file, returns the file content.
+            Defaults to False.
 
         Returns
         -------
-        metadatas : dict
-            Layer metadatas
+        metadata : object
+            Metadata at 'path'.
         """
-        return self.__getMetadata(self._layer(layer), path)
+        return self.__getMetadata(self._layer(layer), path=path, file=file)
 
     @catchCamomileError
     def getLayerMetadataKeys(self, layer, path=None):
@@ -1632,22 +1638,25 @@ class Camomile(object):
     #
     # MEDIUM
     @catchCamomileError
-    def getMediumMetadata(self, medium, path=None):
-        """Get Medium metadatas
+    def getMediumMetadata(self, medium, path=None, file=False):
+        """Get medium metadata
 
         Parameters
         ----------
         medium : str
-            medium ID
+            Medium ID
         path : str, optional
-            metadata path
+            Metadata path. Defaults to root.
+        file : boolean, optional
+            If True and metadata is actually a file, returns the file content.
+            Defaults to False.
 
         Returns
         -------
-        metadatas : dict
-            Medium metadatas
+        metadata : object
+            Metadata at 'path'.
         """
-        return self.__getMetadata(self._medium(medium), path)
+        return self.__getMetadata(self._medium(medium), path=path, file=file)
 
     @catchCamomileError
     def getMediumMetadataKeys(self, medium, path=None):
@@ -1710,15 +1719,20 @@ class Camomile(object):
         """
         return self.__deleteMetadata(self._medium(medium), path)
 
-    #
-    # PRIVATE METHODS
-    def __getMetadata(self, resource,path=None):
-        if path is None:
-            return resource.metadata().get()
+    def __getMetadata(self, resource, path=None, file=False):
 
-        return resource.metadata(path).get()
+        if path is None:
+            metadata = resource.metadata().get()
+        else:
+            metadata = resource.metadata(path).get()
+
+        if file:
+            metadata = b64decode(metadata['data']).decode()
+
+        return metadata
 
     def __getMetadataKeys(self, resource, path=None):
+
         if path is None:
             return resource.metadata().get()
 
