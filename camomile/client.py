@@ -36,7 +36,7 @@ import requests
 import os
 import threading
 import json
-
+from base64 import b64encode, b64decode
 from getpass import getpass
 from sseclient import SSEClient
 
@@ -1724,40 +1724,37 @@ class Camomile(object):
 
         return resource.metadata(path + '.').get()
 
-    def __setMetadata(self, resource, datas, path=None):
-        if path is not None:
-            paths = path.split('.')
-            newDatas = {}
-            accessor = newDatas
-            for i in range(len(paths)):
-                accessor[paths[i]] = {}
-                if i == len(paths) - 1:
-                    accessor[paths[i]] = datas
-                else:
-                    accessor = accessor[paths[i]]
-            datas = newDatas
+    def __setMetadata(self, resource, metadata, path=None):
 
-        return resource.metadata().post(data=datas)
+        if path is None:
+            return resource.metadata().post(data=metadata)
 
-    def __sendMetadataFile(self, resource, path, filepath):
-        with open(filepath, "rb") as f:
-            data = f.read()
-            b64 = data.encode("base64")
-            paths = path.split('.')
-            datas = {}
-            accessor = datas
-            for i in range(len(paths)):
-                accessor[paths[i]] = {}
-                if i == len(paths) - 1:
-                    accessor[paths[i]] = {
-                        'type': 'file',
-                        'filename': os.path.basename(filepath),
-                        'data': b64
-                    }
-                else:
-                    accessor = accessor[paths[i]]
+        data = {}
+        pointer = data
+        tokens = path.split('.')
+        for i in tokens[:-1]:
+            pointer[i] = {}
+            pointer = pointer[i]
+        pointer[tokens[-1]] = metadata
 
-        return resource.metadata().post(data=datas)
+        return resource.metadata().post(data=data)
+
+    def __sendMetadataFile(self, resource, metadata_path, file_path):
+
+        with open(file_path, 'rb') as f:
+            content = f.read()
+
+        data = {}
+        pointer = data
+        for i in metadata_path.split('.'):
+            pointer[i] = {}
+            pointer = pointer[i]
+
+        pointer['type'] = 'file'
+        pointer['filename'] = os.path.basename(file_path)
+        pointer['data'] = b64encode(content).decode()
+
+        return resource.metadata().post(data=data)
 
     def __deleteMetadata(self, resource, path):
         return resource.metadata(path).delete()
