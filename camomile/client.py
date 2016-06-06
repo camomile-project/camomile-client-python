@@ -1496,34 +1496,34 @@ class Camomile(object):
 
     @catchCamomileError
     def getCorpusMetadataKeys(self, corpus, path=None):
-        """Get Corpus metadatas first level keys
+        """Get corpus metadata keys at 'path'
 
         Parameters
         ----------
         corpus : str
-            corpus ID
+            Corpus ID
         path : str, optional
-            metadata path
+            Metadata path. Default to root.
 
         Returns
         -------
-        keys : List
-            Corpus metadatas first level keys
+        keys : list
+            List of metadata keys at 'path'.
         """
-        return self.__getMetadataKeys(self._corpus(corpus), path)
+        return self.__getMetadataKeys(self._corpus(corpus), path=path)
 
     @catchCamomileError
-    def setCorpusMetadata(self, corpus, datas, path=None):
+    def setCorpusMetadata(self, corpus, metadata, path=None):
         """Set Corpus metadatas
 
         Parameters
         ----------
         corpus : str
             corpus ID
-        datas : dict
+        metadata : dict
             metadatas
         """
-        return self.__setMetadata(self._corpus(corpus), datas, path)
+        return self.__setMetadata(self._corpus(corpus), metadata, path=path)
 
     @catchCamomileError
     def sendCorpusMetadataFile(self, corpus, path, filepath):
@@ -1578,34 +1578,34 @@ class Camomile(object):
 
     @catchCamomileError
     def getLayerMetadataKeys(self, layer, path=None):
-        """Get Layer metadatas first level keys
+        """Get layer metadata keys at 'path'
 
         Parameters
         ----------
         layer : str
-            layer ID
+            Layer ID
         path : str, optional
-            metadata path
+            Metadata path. Default to root.
 
         Returns
         -------
-        keys : List
-            Layer metadatas first level keys
+        keys : list
+            List of metadata keys at 'path'.
         """
-        return self.__getMetadataKeys(self._layer(layer), path)
+        return self.__getMetadataKeys(self._layer(layer), path=path)
 
     @catchCamomileError
-    def setLayerMetadata(self, layer, datas, path=None):
+    def setLayerMetadata(self, layer, metadata, path=None):
         """Set Layer metadatas
 
         Parameters
         ----------
         layer : str
             layer ID
-        datas : dict
+        metadata : dict
             metadatas
         """
-        return self.__setMetadata(self._layer(layer), datas, path)
+        return self.__setMetadata(self._layer(layer), metadata, path=path)
 
     @catchCamomileError
     def sendLayerMetadataFile(self, layer, path, filepath):
@@ -1660,36 +1660,36 @@ class Camomile(object):
 
     @catchCamomileError
     def getMediumMetadataKeys(self, medium, path=None):
-        """Get Medium metadatas first level keys
+        """Get medium metadata keys at 'path'
 
         Parameters
         ----------
         medium : str
-            medium ID
+            Medium ID
         path : str, optional
-            metadata path
+            Metadata path. Default to root.
 
         Returns
         -------
-        keys : List
-            Medium metadatas first level keys
+        keys : list
+            List of metadata keys at 'path'.
         """
-        return self.__getMetadataKeys(self._medium(medium), path)
+        return self.__getMetadataKeys(self._medium(medium), path=path)
 
     @catchCamomileError
-    def setMediumMetadata(self, medium, datas, path=None):
+    def setMediumMetadata(self, medium, metadata, path=None):
         """Set Medium metadatas
 
         Parameters
         ----------
         medium : str
             medium ID
-        datas : dict
+        metadata : dict
             metadatas
         path : str, optional
             metadata path
         """
-        return self.__setMetadata(self._medium(medium), datas, path)
+        return self.__setMetadata(self._medium(medium), metadata, path=path)
 
     @catchCamomileError
     def sendMediumMetadataFile(self, medium, path, filepath):
