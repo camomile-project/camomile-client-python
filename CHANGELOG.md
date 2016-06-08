@@ -1,3 +1,10 @@
+## Version 0.9 (2016-06-08)
+
+ - feat: add 'keep_alive' login() parameter
+ - feat: add Camomile-specific exceptions
+ - feat: add 'file' getMetadata() parameter
+ - chore: improve code style
+
 ## Version 0.8.3 (2016-05-29)
 
  - feat: Python 3 support

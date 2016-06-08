@@ -34,5 +34,11 @@ del get_versions
 
 
 from .client import Camomile
+from .client import CamomileBadRequest, \
+                    CamomileUnauthorized, \
+                    CamomileForbidden, \
+                    CamomileNotFound, \
+                    CamomileBadJSON, \
+                    CamomileInternalError
 
 __all__ = ['Camomile']
