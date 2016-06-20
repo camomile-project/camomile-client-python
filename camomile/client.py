@@ -186,6 +186,8 @@ class Camomile(object):
         self._listenerCallbacks = {}
         self._thread = None
 
+        self._keep_alive = None
+
         if username:
             self.login(username, password, keep_alive=keep_alive)
 
@@ -277,7 +279,7 @@ class Camomile(object):
         result = self._api.login.post(data=credentials)
 
         if keep_alive:
-            self.keep_alive = credentials
+            self._keep_alive = credentials
 
         return result
 
@@ -290,8 +292,8 @@ class Camomile(object):
             Default to unlimited number of trials.
         """
 
-        username = self.keep_alive['username']
-        password = self.keep_alive['password']
+        username = self._keep_alive['username']
+        password = self._keep_alive['password']
 
         trials = 0
 
@@ -318,7 +320,7 @@ class Camomile(object):
            self._thread.isRun = False
            self._thread = None
 
-        self.keep_alive = None
+        self._keep_alive = None
 
         return self._api.logout.post()
 

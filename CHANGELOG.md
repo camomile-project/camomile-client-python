@@ -1,3 +1,7 @@
+## Version 0.9.1 (2016-06-20)
+
+ - fix: fix missing keep_alive_ attribute
+
 ## Version 0.9 (2016-06-08)
 
  - feat: add 'keep_alive' login() parameter
