@@ -1,6 +1,6 @@
-## Version 0.9.1 (2016-06-20)
+## Version 0.9.2 (2016-06-27)
 
- - fix: fix missing keep_alive_ attribute
+ - fix: fix broken 'keep_alive' feature
 
 ## Version 0.9 (2016-06-08)
 

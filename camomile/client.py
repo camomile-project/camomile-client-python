@@ -93,7 +93,7 @@ class CamomileErrorHandling(object):
 
             # (optionnally) resuscitate in case of connection error
             except requests.exceptions.ConnectionError as e:
-                if self.resuscitate and client.keep_alive:
+                if self.resuscitate and client._keep_alive:
                     client._resuscitate(max_trials=-1)
                     return func(client, *args, **kwargs)
 
@@ -122,7 +122,7 @@ class CamomileErrorHandling(object):
                     raise CamomileBadRequest(message)
 
                 if status_code == 401:
-                    if self.resuscitate and client.keep_alive:
+                    if self.resuscitate and client._keep_alive:
                         client._resuscitate(max_trials=-1)
                         return func(client, *args, **kwargs)
                     else:
