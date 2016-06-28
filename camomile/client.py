@@ -1515,12 +1515,12 @@ class Camomile(object):
         ----------
         queue : str
             Queue ID
+        permission : 1 (READ), 2 (WRITE) or 3 (ADMIN)
+            Read, Write or Admin privileges.
         user : str, optional
             User ID
         group : str, optional
             Group ID
-        permission : 1 (READ), 2 (WRITE) or 3 (ADMIN)
-            Read, Write or Admin privileges.
 
         Returns
         -------
